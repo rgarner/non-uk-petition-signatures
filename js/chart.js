@@ -4,43 +4,79 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Chart = (function() {
+    var margin;
+
+    margin = {
+      top: 40,
+      right: 70,
+      bottom: 150,
+      left: 70
+    };
+
     function Chart(petitionData1) {
       this.petitionData = petitionData1;
       this.draw = bind(this.draw, this);
+      this.setupSignatureCounts = bind(this.setupSignatureCounts, this);
+      this.drawYAxis = bind(this.drawYAxis, this);
+      this.drawXAxis = bind(this.drawXAxis, this);
+      this.recalculateScales = bind(this.recalculateScales, this);
+      this.resize = bind(this.resize, this);
       this.countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
         return country.name;
       });
       this.data = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
         return country.signature_count;
       });
+      d3.select(window).on('resize', this.resize);
     }
 
+    Chart.prototype.resize = function() {
+      console.log('gi');
+      this.recalculateScales();
+      return this.draw();
+    };
+
+    Chart.prototype.recalculateScales = function() {
+      this.width = window.innerWidth - margin.left - margin.right;
+      this.height = 550 - margin.top - margin.bottom;
+      this.barWidth = this.width / this.data.length;
+      this.x = d3.scale.ordinal().domain(this.countryLabels).rangeBands([0, this.width]);
+      this.y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]).range([this.height, 0]);
+      this.xAxis = d3.svg.axis().scale(this.x).orient("bottom");
+      return this.yAxis = d3.svg.axis().scale(this.y).orient("left");
+    };
+
+    Chart.prototype.drawXAxis = function(svg) {
+      return svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").call(this.xAxis).selectAll("text").attr("transform", "rotate(90)").attr("x", 15).attr("y", 0).style("text-anchor", "start");
+    };
+
+    Chart.prototype.drawYAxis = function(svg) {
+      return svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "rotate(-90)").attr("y", -63).attr("dy", ".71em").style("text-anchor", "end").text("Signatures");
+    };
+
+    Chart.prototype.setupSignatureCounts = function(svg) {
+      return svg.selectAll(".bar").data(this.data).enter().append("rect").attr("class", "bar").attr("width", this.barWidth - 1).attr("height", (function(_this) {
+        return function(d) {
+          return _this.height - _this.y(d);
+        };
+      })(this)).attr("x", (function(_this) {
+        return function(d, i) {
+          return i * _this.barWidth;
+        };
+      })(this)).attr("y", (function(_this) {
+        return function(d) {
+          return _this.y(d);
+        };
+      })(this));
+    };
+
     Chart.prototype.draw = function() {
-      var bar, barWidth, height, margin, svg, width, x, xAxis, y, yAxis;
-      margin = {
-        top: 40,
-        right: 70,
-        bottom: 150,
-        left: 70
-      };
-      width = window.innerWidth - margin.left - margin.right;
-      height = 550 - margin.top - margin.bottom;
-      barWidth = width / this.data.length;
-      x = d3.scale.ordinal().domain(this.countryLabels).rangeBands([0, width]);
-      y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]).range([height, 0]);
-      xAxis = d3.svg.axis().scale(x).orient("bottom");
-      yAxis = d3.svg.axis().scale(y).orient("left");
-      svg = d3.select("#chart").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").call(xAxis).selectAll("text").attr("transform", "rotate(90)").attr("x", 15).attr("y", 0).style("text-anchor", "start");
-      svg.append("g").attr("class", "y axis").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", -63).attr("dy", ".71em").style("text-anchor", "end").text("Signatures");
-      bar = svg.selectAll(".bar").data(this.data).enter().append("rect").attr("class", "bar").attr("width", barWidth - 1).attr("height", function(d) {
-        return height - y(d);
-      }).attr("x", function(d, i) {
-        return i * barWidth;
-      }).attr("y", function(d) {
-        return y(d);
-      });
-      return bar.append("rect");
+      var svg;
+      this.recalculateScales();
+      svg = d3.select("#chart").attr("width", this.width + margin.left + margin.right).attr("height", this.height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      this.drawXAxis(svg);
+      this.drawYAxis(svg);
+      return this.setupSignatureCounts(svg);
     };
 
     return Chart;
