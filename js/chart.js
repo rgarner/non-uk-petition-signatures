@@ -4,42 +4,13 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Chart = (function() {
-    var TOP;
-
-    TOP = 10;
-
-    function Chart(petition_json) {
-      this.petition_json = petition_json;
+    function Chart(petitionJson) {
       this.draw = bind(this.draw, this);
-      this.maxCountryFrequency = bind(this.maxCountryFrequency, this);
-      this.signaturesByCountryDescendingCount = bind(this.signaturesByCountryDescendingCount, this);
-      this.signaturesByCountry = bind(this.signaturesByCountry, this);
+      this.petitionData = new PetitionData(petitionJson);
     }
 
-    Chart.prototype.signaturesByCountry = function() {
-      return this.petition_json.data.attributes.signatures_by_country.filter(function(country) {
-        return country.code !== 'GB';
-      });
-    };
-
-    Chart.prototype.signaturesByCountryDescendingCount = function() {
-      var descending;
-      descending = this.signaturesByCountry().sort(function(prev, current) {
-        if (current.signature_count > prev.signature_count) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-      return descending.slice(0, +(TOP - 1) + 1 || 9e9);
-    };
-
-    Chart.prototype.maxCountryFrequency = function() {
-      return this.signaturesByCountryDescendingCount()[0].signature_count;
-    };
-
     Chart.prototype.draw = function() {
-      var bar, barWidth, countryLabels, data, height, margin, signaturesByCountry, svg, width, x, xAxis, y, yAxis;
+      var bar, barWidth, countryLabels, data, height, margin, svg, width, x, xAxis, y, yAxis;
       margin = {
         top: 40,
         right: 70,
@@ -48,16 +19,15 @@
       };
       width = window.innerWidth - margin.left - margin.right;
       height = 550 - margin.top - margin.bottom;
-      signaturesByCountry = this.signaturesByCountryDescendingCount();
-      data = signaturesByCountry.map(function(country) {
+      data = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
         return country.signature_count;
       });
-      countryLabels = signaturesByCountry.map(function(country) {
-        return country.code;
+      countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
+        return country.name;
       });
       barWidth = width / data.length;
       x = d3.scale.ordinal().domain(countryLabels).rangeBands([0, width]);
-      y = d3.scale.linear().domain([0, this.maxCountryFrequency()]).range([height, 0]);
+      y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]).range([height, 0]);
       xAxis = d3.svg.axis().scale(x).orient("bottom");
       yAxis = d3.svg.axis().scale(y).orient("left");
       svg = d3.select("#chart").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");

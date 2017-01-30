@@ -1,28 +1,14 @@
 class Chart
-  TOP = 10
-
-  constructor: (@petition_json) ->
-
-  signaturesByCountry: () =>
-    @petition_json.data.attributes.signatures_by_country.filter (country) ->
-      country.code != 'GB'
-
-  signaturesByCountryDescendingCount: () =>
-    descending = @signaturesByCountry().sort (prev, current) ->
-      if current.signature_count > prev.signature_count then 1 else -1
-    descending[0..TOP - 1]
-
-  maxCountryFrequency: () =>
-    @signaturesByCountryDescendingCount()[0].signature_count
+  constructor: (petitionJson) ->
+    @petitionData = new PetitionData(petitionJson)
 
   draw: () =>
     margin = { top: 40, right: 70, bottom: 150, left: 70 }
     width = window.innerWidth - margin.left - margin.right
     height = 550 - margin.top - margin.bottom
 
-    signaturesByCountry = @signaturesByCountryDescendingCount()
-    data = signaturesByCountry.map (country) -> country.signature_count
-    countryLabels = signaturesByCountry.map (country) -> country.code
+    data = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.signature_count
+    countryLabels = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.name
 
     barWidth = width / data.length
 
@@ -31,7 +17,7 @@ class Chart
       .rangeBands([0, width])
 
     y = d3.scale.linear()
-      .domain([0, @maxCountryFrequency()])
+      .domain([0, @petitionData.maxCountryFrequency()])
       .range([height, 0])
 
     xAxis = d3.svg.axis().scale(x).orient("bottom")
@@ -69,7 +55,7 @@ class Chart
       .attr("class", "bar")
       .attr("width", barWidth - 1)
       .attr("height", (d) -> height - y(d) )
-      .attr("x", (d, i) -> i * barWidth)# x(countryLabels[i]))
+      .attr("x", (d, i) -> i * barWidth)
       .attr("y", (d) -> y(d))
 
     bar.append("rect")
