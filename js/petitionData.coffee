@@ -3,9 +3,16 @@ class @PetitionData
 
   constructor: (@petitionJson) ->
 
+  title: () =>
+    @petitionJson.data.attributes.action
+
   signaturesByCountry: () =>
     @_signaturesByCountry = @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != 'GB'
+
+  uk: () =>
+    countries = @petitionJson.data.attributes.signatures_by_country
+    (c for c in countries when c.code is 'GB')[0]
 
   signaturesByCountryDescendingCount: () =>
     descending = @signaturesByCountry().sort (prev, current) ->

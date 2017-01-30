@@ -4,13 +4,19 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Chart = (function() {
-    function Chart(petitionJson) {
+    function Chart(petitionData1) {
+      this.petitionData = petitionData1;
       this.draw = bind(this.draw, this);
-      this.petitionData = new PetitionData(petitionJson);
+      this.countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
+        return country.name;
+      });
+      this.data = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
+        return country.signature_count;
+      });
     }
 
     Chart.prototype.draw = function() {
-      var bar, barWidth, countryLabels, data, height, margin, svg, width, x, xAxis, y, yAxis;
+      var bar, barWidth, height, margin, svg, width, x, xAxis, y, yAxis;
       margin = {
         top: 40,
         right: 70,
@@ -19,21 +25,15 @@
       };
       width = window.innerWidth - margin.left - margin.right;
       height = 550 - margin.top - margin.bottom;
-      data = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
-        return country.signature_count;
-      });
-      countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
-        return country.name;
-      });
-      barWidth = width / data.length;
-      x = d3.scale.ordinal().domain(countryLabels).rangeBands([0, width]);
+      barWidth = width / this.data.length;
+      x = d3.scale.ordinal().domain(this.countryLabels).rangeBands([0, width]);
       y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]).range([height, 0]);
       xAxis = d3.svg.axis().scale(x).orient("bottom");
       yAxis = d3.svg.axis().scale(y).orient("left");
       svg = d3.select("#chart").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
       svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").call(xAxis).selectAll("text").attr("transform", "rotate(90)").attr("x", 15).attr("y", 0).style("text-anchor", "start");
       svg.append("g").attr("class", "y axis").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", -63).attr("dy", ".71em").style("text-anchor", "end").text("Signatures");
-      bar = svg.selectAll(".bar").data(data).enter().append("rect").attr("class", "bar").attr("width", barWidth - 1).attr("height", function(d) {
+      bar = svg.selectAll(".bar").data(this.data).enter().append("rect").attr("class", "bar").attr("width", barWidth - 1).attr("height", function(d) {
         return height - y(d);
       }).attr("x", function(d, i) {
         return i * barWidth;
@@ -47,23 +47,13 @@
 
   })();
 
-  setupTitle = function(countries) {
-    var c, formattedSignatureCount, uk;
-    uk = ((function() {
-      var j, len, results;
-      results = [];
-      for (j = 0, len = countries.length; j < len; j++) {
-        c = countries[j];
-        if (c.code === 'GB') {
-          results.push(c);
-        }
-      }
-      return results;
-    })())[0];
-    formattedSignatureCount = uk.signature_count.toLocaleString('en-GB', {
+  setupTitle = function(petitionData) {
+    var formattedSignatureCount;
+    $('.petition-title').text(petitionData.title());
+    formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {
       minimumFractionDigits: 0
     });
-    return $('.uk-signatures').text("(" + formattedSignatureCount + " signatures)");
+    return $('.uk-signatures').text("(" + formattedSignatureCount + " UK signatures)");
   };
 
   jQuery(function() {
@@ -74,8 +64,10 @@
         error: function(jqXHR, textStatus, errorThrown) {
           return console.log("Couldn't get petition JSON - " + textStatus + ": " + errorThrown);
         },
-        success: function(petitionData, _textStatus, _jqXHR) {
-          setupTitle(petitionData.data.attributes.signatures_by_country);
+        success: function(petitionJson, _textStatus, _jqXHR) {
+          var petitionData;
+          petitionData = new PetitionData(petitionJson);
+          setupTitle(petitionData);
           window.chart = new Chart(petitionData);
           return window.chart.draw();
         }

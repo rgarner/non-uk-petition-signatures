@@ -1,19 +1,17 @@
 class Chart
-  constructor: (petitionJson) ->
-    @petitionData = new PetitionData(petitionJson)
+  constructor: (@petitionData) ->
+    @countryLabels = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.name
+    @data = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.signature_count
 
   draw: () =>
     margin = { top: 40, right: 70, bottom: 150, left: 70 }
     width = window.innerWidth - margin.left - margin.right
     height = 550 - margin.top - margin.bottom
 
-    data = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.signature_count
-    countryLabels = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.name
-
-    barWidth = width / data.length
+    barWidth = width / @data.length
 
     x = d3.scale.ordinal()
-      .domain(countryLabels)
+      .domain(@countryLabels)
       .rangeBands([0, width])
 
     y = d3.scale.linear()
@@ -50,7 +48,7 @@ class Chart
       .text("Signatures")
 
     bar = svg.selectAll(".bar")
-      .data(data)
+      .data(@data)
       .enter().append("rect")
       .attr("class", "bar")
       .attr("width", barWidth - 1)
@@ -60,10 +58,10 @@ class Chart
 
     bar.append("rect")
 
-setupTitle = (countries) ->
-  uk = (c for c in countries when c.code is 'GB')[0]
-  formattedSignatureCount = uk.signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
-  $('.uk-signatures').text("(#{formattedSignatureCount} signatures)")
+setupTitle = (petitionData) ->
+  $('.petition-title').text(petitionData.title())
+  formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
+  $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
 
 jQuery ->
   if document.getElementById('chart')
@@ -72,7 +70,8 @@ jQuery ->
       dataType: "json"
       error: (jqXHR, textStatus, errorThrown) ->
         console.log("Couldn't get petition JSON - #{textStatus}: #{errorThrown}")
-      success: (petitionData, _textStatus, _jqXHR) ->
-        setupTitle(petitionData.data.attributes.signatures_by_country)
+      success: (petitionJson, _textStatus, _jqXHR) ->
+        petitionData = new PetitionData(petitionJson)
+        setupTitle(petitionData)
         window.chart = new Chart(petitionData)
         window.chart.draw()
