@@ -3,9 +3,11 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.PetitionData = (function() {
-    var TOP;
+    var FILTER, TOP;
 
     TOP = 25;
+
+    FILTER = 'GB';
 
     function PetitionData(petitionJson) {
       this.petitionJson = petitionJson;
@@ -25,9 +27,14 @@
       return this.petitionJson.links.self.replace('.json', '');
     };
 
-    PetitionData.prototype.signaturesByCountry = function() {
+    PetitionData.prototype.signaturesByCountry = function(options) {
+      if (options == null) {
+        options = {
+          filter: FILTER
+        };
+      }
       return this._signaturesByCountry = this.petitionJson.data.attributes.signatures_by_country.filter(function(country) {
-        return country.code !== 'GB';
+        return country.code !== options.filter;
       });
     };
 
@@ -53,19 +60,24 @@
       })())[0];
     };
 
-    PetitionData.prototype.signaturesByCountryDescendingCount = function(top) {
+    PetitionData.prototype.signaturesByCountryDescendingCount = function(options) {
       var descending;
-      if (top == null) {
-        top = TOP;
+      if (options == null) {
+        options = {
+          top: TOP,
+          filter: FILTER
+        };
       }
-      descending = this.signaturesByCountry().sort(function(prev, current) {
+      descending = this.signaturesByCountry({
+        filter: options.filter
+      }).sort(function(prev, current) {
         if (current.signature_count > prev.signature_count) {
           return 1;
         } else {
           return -1;
         }
       });
-      return descending.slice(0, +(top - 1) + 1 || 9e9);
+      return descending.slice(0, +(options.top - 1) + 1 || 9e9);
     };
 
     PetitionData.prototype.maxCountryFrequency = function() {

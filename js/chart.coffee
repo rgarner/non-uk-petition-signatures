@@ -136,10 +136,7 @@ class @PageManager
     $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
 
   @download: (petitionData) ->
-    console.log(petitionData)
-    ALL = 500
-
-    signaturesByCountry = petitionData.signaturesByCountryDescendingCount(ALL)
+    signaturesByCountry = petitionData.signaturesByCountryDescendingCount({filter: 'NONE'})
 
     csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n"
     for country, index in signaturesByCountry

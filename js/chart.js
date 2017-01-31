@@ -176,10 +176,10 @@
     };
 
     PageManager.download = function(petitionData) {
-      var ALL, country, csv, encodedUri, index, j, len, row, signaturesByCountry;
-      console.log(petitionData);
-      ALL = 500;
-      signaturesByCountry = petitionData.signaturesByCountryDescendingCount(ALL);
+      var country, csv, encodedUri, index, j, len, row, signaturesByCountry;
+      signaturesByCountry = petitionData.signaturesByCountryDescendingCount({
+        filter: 'NONE'
+      });
       csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n";
       for (index = j = 0, len = signaturesByCountry.length; j < len; index = ++j) {
         country = signaturesByCountry[index];
