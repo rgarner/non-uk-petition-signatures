@@ -15,21 +15,44 @@
     <script src="js/petitionsData.js" charset="utf-8"></script>
 </head>
 <body>
+<header>
+    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+        <div class="nav-links">
+            <div class="navbar-header">
+                <span class="navbar-brand">
+                    GOV.UK out-of-country petition signatures
+                    <span class="beta badge">Unofficial nonsense</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<article class="container-fluid">
+
+<ul class="navbar-brand"></ul>
+
 <div class="dropdown">
     <button class="btn btn-default dropdown-toggle" type="button" id="drpPetitions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select a petition:
         <span class="caret"></span>
     </button>
-    <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions">
-        <li><a href="#">Action</a></li>
-        <li><a href="#">Another action</a></li>
-        <li><a href="#">Something else here</a></li>
-    </ul>
+    <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" />
 </div>
 <h1 class="petition-title">Trump UK State Visit</h1>
 <h2>Signatures from countries other than the UK <small class="uk-signatures"></small></h2>
+
 <div id="chartContainer">
     <svg id="chart"></svg>
 </div>
+
+</article>
+
+<footer class="navbar">
+    <p align="right">© Zephyros Systems Limited 2015</p>
+</footer>
+
+
 </body>
+
 </html>
