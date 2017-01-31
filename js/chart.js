@@ -152,6 +152,7 @@
           var petitionData;
           petitionData = new PetitionData(petitionJson);
           PageManager.setupTitle(petitionData);
+          PageManager.setupCsvDownload(petitionData);
           if (window._chart) {
             window._chart.replace();
           }
@@ -172,6 +173,30 @@
       });
       $('.uk-signatures a').remove();
       return $('.uk-signatures').text("(" + formattedSignatureCount + " UK signatures)");
+    };
+
+    PageManager.download = function(petitionData) {
+      var ALL, country, csv, encodedUri, index, j, len, row, signaturesByCountry;
+      console.log(petitionData);
+      ALL = 500;
+      signaturesByCountry = petitionData.signaturesByCountryDescendingCount(ALL);
+      csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n";
+      for (index = j = 0, len = signaturesByCountry.length; j < len; index = ++j) {
+        country = signaturesByCountry[index];
+        row = [country.code, country.name, country.signature_count].join(",");
+        csv += row;
+        if (index < signaturesByCountry.length) {
+          csv += "\n";
+        }
+      }
+      encodedUri = encodeURI(csv);
+      return window.open(encodedUri);
+    };
+
+    PageManager.setupCsvDownload = function(petitionData) {
+      return $('#download').click(function() {
+        return PageManager.download(petitionData);
+      });
     };
 
     return PageManager;

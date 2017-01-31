@@ -53,8 +53,11 @@
       })())[0];
     };
 
-    PetitionData.prototype.signaturesByCountryDescendingCount = function() {
+    PetitionData.prototype.signaturesByCountryDescendingCount = function(top) {
       var descending;
+      if (top == null) {
+        top = TOP;
+      }
       descending = this.signaturesByCountry().sort(function(prev, current) {
         if (current.signature_count > prev.signature_count) {
           return 1;
@@ -62,7 +65,7 @@
           return -1;
         }
       });
-      return descending.slice(0, +(TOP - 1) + 1 || 9e9);
+      return descending.slice(0, +(top - 1) + 1 || 9e9);
     };
 
     PetitionData.prototype.maxCountryFrequency = function() {

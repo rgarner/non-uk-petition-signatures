@@ -92,6 +92,7 @@ class Chart
         signatures = @petitionData.signatureCountForName(c)
         "#{signatures} signature#{ if signatures > 1 then 's' else '' }"
       )
+
     @drawYAxis()
       .append("text")
       .attr("transform", "rotate(-90)")
@@ -116,6 +117,7 @@ class @PageManager
       success: (petitionJson) ->
         petitionData = new PetitionData(petitionJson)
         PageManager.setupTitle(petitionData)
+        PageManager.setupCsvDownload(petitionData)
         if window._chart
           window._chart.replace()
         window._chart = new Chart(petitionData)
@@ -132,6 +134,25 @@ class @PageManager
     formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
     $('.uk-signatures a').remove()
     $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
+
+  @download: (petitionData) ->
+    console.log(petitionData)
+    ALL = 500
+
+    signaturesByCountry = petitionData.signaturesByCountryDescendingCount(ALL)
+
+    csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n"
+    for country, index in signaturesByCountry
+      row = [country.code, country.name, country.signature_count].join(",")
+      csv += row
+      csv += "\n" if index < signaturesByCountry.length
+
+    encodedUri = encodeURI(csv)
+    window.open(encodedUri);
+
+  @setupCsvDownload: (petitionData) ->
+    $('#download').click ->
+      PageManager.download(petitionData)
 
 jQuery ->
   if document.getElementById('chart')
