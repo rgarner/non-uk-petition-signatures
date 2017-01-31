@@ -151,7 +151,7 @@ class @PageManager
     window.open(encodedUri);
 
   @setupCsvDownload: (petitionData) ->
-    $('#download').click ->
+    $('#download').unbind('click').click ->
       PageManager.download(petitionData)
 
 jQuery ->

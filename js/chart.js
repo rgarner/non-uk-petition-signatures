@@ -194,7 +194,7 @@
     };
 
     PageManager.setupCsvDownload = function(petitionData) {
-      return $('#download').click(function() {
+      return $('#download').unbind('click').click(function() {
         return PageManager.download(petitionData);
       });
     };
