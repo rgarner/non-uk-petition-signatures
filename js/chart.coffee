@@ -21,8 +21,6 @@ class Chart
 
     @barWidth = @width / @data.length
 
-    console.log "#{@width},#{@height}: #{@barWidth}"
-
     @x ||= d3.scale.ordinal().domain(@countryLabels)
     @x.rangeBands([0, @width])
 
@@ -65,6 +63,8 @@ class Chart
       .attr("height", (d) => @height - @y(d))
       .attr("x", (d, i) => i * @barWidth)
       .attr("y", (d) => @y(d))
+      .append("title")
+      .text((d) -> "#{d} signatures")
 
   svg:() =>
     d3.select("#chart")
@@ -87,6 +87,11 @@ class Chart
     @yAxis = d3.svg.axis().scale(@y).orient("left")
 
     @drawXAxis()
+    @xAxisGroup().selectAll('text')
+      .append('title').text((c) =>
+        signatures = @petitionData.signatureCountForName(c)
+        "#{signatures} signature#{ if signatures > 1 then 's' else '' }"
+      )
     @drawYAxis()
       .append("text")
       .attr("transform", "rotate(-90)")
@@ -95,23 +100,32 @@ class Chart
       .style("text-anchor", "end")
       .text("Signatures")
 
-
     @setupSignatureCounts()
 
-setupTitle = (petitionData) ->
-  $('.petition-title').text(petitionData.title())
-  formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
-  $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
+  replace: () =>
+    $('#chartContainer #chart').remove()
+    $('#chartContainer').append('<svg id="chart" />')
 
-jQuery ->
-  if document.getElementById('chart')
+class @PageManager
+  @setup: (petitionUrl) ->
     $.ajax
-      url: "https://petition.parliament.uk/petitions/171928.json"
+      url: petitionUrl
       dataType: "json"
       error: (jqXHR, textStatus, errorThrown) ->
         console.log("Couldn't get petition JSON - #{textStatus}: #{errorThrown}")
       success: (petitionJson, _textStatus, _jqXHR) ->
         petitionData = new PetitionData(petitionJson)
-        setupTitle(petitionData)
-        window.chart = new Chart(petitionData)
-        window.chart.draw()
+        PageManager.setupTitle(petitionData)
+        if window._chart
+          window._chart.replace()
+        window._chart = new Chart(petitionData)
+        window._chart.draw()
+
+  @setupTitle: (petitionData) ->
+    $('.petition-title').text(petitionData.title())
+    formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
+    $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
+
+jQuery ->
+  if document.getElementById('chart')
+    PageManager.setup("https://petition.parliament.uk/petitions/171928.json")

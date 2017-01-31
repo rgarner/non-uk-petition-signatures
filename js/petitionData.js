@@ -5,7 +5,7 @@
   this.PetitionData = (function() {
     var TOP;
 
-    TOP = 20;
+    TOP = 50;
 
     function PetitionData(petitionJson) {
       this.petitionJson = petitionJson;
@@ -24,6 +24,12 @@
       return this._signaturesByCountry = this.petitionJson.data.attributes.signatures_by_country.filter(function(country) {
         return country.code !== 'GB';
       });
+    };
+
+    PetitionData.prototype.signatureCountForName = function(name) {
+      return this.signaturesByCountry().find(function(c) {
+        return c.name === name;
+      }).signature_count;
     };
 
     PetitionData.prototype.uk = function() {

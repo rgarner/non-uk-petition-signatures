@@ -1,5 +1,5 @@
 class @PetitionData
-  TOP = 20
+  TOP = 50
 
   constructor: (@petitionJson) ->
 
@@ -9,6 +9,9 @@ class @PetitionData
   signaturesByCountry: () =>
     @_signaturesByCountry = @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != 'GB'
+
+  signatureCountForName: (name) ->
+    @signaturesByCountry().find((c) -> c.name == name).signature_count
 
   uk: () =>
     countries = @petitionJson.data.attributes.signatures_by_country
