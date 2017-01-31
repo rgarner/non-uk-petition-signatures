@@ -1,10 +1,13 @@
 class @PetitionData
-  TOP = 50
+  TOP = 25
 
   constructor: (@petitionJson) ->
 
   title: () =>
     @petitionJson.data.attributes.action
+
+  url: () =>
+    @petitionJson.links.self.replace('.json', '')
 
   signaturesByCountry: () =>
     @_signaturesByCountry = @petitionJson.data.attributes.signatures_by_country.filter (country) ->

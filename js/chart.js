@@ -148,7 +148,7 @@
         error: function(jqXHR, textStatus, errorThrown) {
           return console.log("Couldn't get petition JSON - " + textStatus + ": " + errorThrown);
         },
-        success: function(petitionJson, _textStatus, _jqXHR) {
+        success: function(petitionJson) {
           var petitionData;
           petitionData = new PetitionData(petitionJson);
           PageManager.setupTitle(petitionData);
@@ -163,10 +163,14 @@
 
     PageManager.setupTitle = function(petitionData) {
       var formattedSignatureCount;
-      $('.petition-title').text(petitionData.title());
+      $('.petition-title').text('');
+      $('.petition-title a').remove();
+      $('.petition-title').append('<a />');
+      $('.petition-title a').text(petitionData.title()).attr('href', petitionData.url());
       formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {
         minimumFractionDigits: 0
       });
+      $('.uk-signatures a').remove();
       return $('.uk-signatures').text("(" + formattedSignatureCount + " UK signatures)");
     };
 

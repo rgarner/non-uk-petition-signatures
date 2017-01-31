@@ -113,7 +113,7 @@ class @PageManager
       dataType: "json"
       error: (jqXHR, textStatus, errorThrown) ->
         console.log("Couldn't get petition JSON - #{textStatus}: #{errorThrown}")
-      success: (petitionJson, _textStatus, _jqXHR) ->
+      success: (petitionJson) ->
         petitionData = new PetitionData(petitionJson)
         PageManager.setupTitle(petitionData)
         if window._chart
@@ -122,8 +122,15 @@ class @PageManager
         window._chart.draw()
 
   @setupTitle: (petitionData) ->
-    $('.petition-title').text(petitionData.title())
+    $('.petition-title').text('')
+    $('.petition-title a').remove()
+    $('.petition-title').append('<a />')
+    $('.petition-title a')
+      .text(petitionData.title())
+      .attr('href', petitionData.url())
+
     formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
+    $('.uk-signatures a').remove()
     $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
 
 jQuery ->

@@ -5,7 +5,7 @@
   this.PetitionData = (function() {
     var TOP;
 
-    TOP = 50;
+    TOP = 25;
 
     function PetitionData(petitionJson) {
       this.petitionJson = petitionJson;
@@ -13,11 +13,16 @@
       this.signaturesByCountryDescendingCount = bind(this.signaturesByCountryDescendingCount, this);
       this.uk = bind(this.uk, this);
       this.signaturesByCountry = bind(this.signaturesByCountry, this);
+      this.url = bind(this.url, this);
       this.title = bind(this.title, this);
     }
 
     PetitionData.prototype.title = function() {
       return this.petitionJson.data.attributes.action;
+    };
+
+    PetitionData.prototype.url = function() {
+      return this.petitionJson.links.self.replace('.json', '');
     };
 
     PetitionData.prototype.signaturesByCountry = function() {
