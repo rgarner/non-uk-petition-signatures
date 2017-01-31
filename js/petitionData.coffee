@@ -1,5 +1,5 @@
 class @PetitionData
-  TOP = 10
+  TOP = 20
 
   constructor: (@petitionJson) ->
 

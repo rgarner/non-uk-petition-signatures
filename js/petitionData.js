@@ -5,7 +5,7 @@
   this.PetitionData = (function() {
     var TOP;
 
-    TOP = 10;
+    TOP = 20;
 
     function PetitionData(petitionJson) {
       this.petitionJson = petitionJson;

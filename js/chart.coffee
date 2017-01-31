@@ -8,9 +8,12 @@ class Chart
     d3.select(window).on('resize', @resize);
 
   resize: () =>
-    console.log('gi')
     @recalculateScales()
-    @draw()
+    @drawXAxis()
+    @drawYAxis()
+    @svg().selectAll('rect')
+      .attr('x', (d,i) => i * @barWidth)
+      .attr('width', @barWidth - 1)
 
   recalculateScales: () =>
     @width = window.innerWidth - margin.left - margin.right
@@ -18,20 +21,30 @@ class Chart
 
     @barWidth = @width / @data.length
 
-    @x = d3.scale.ordinal()
-      .domain(@countryLabels)
-      .rangeBands([0, @width])
+    console.log "#{@width},#{@height}: #{@barWidth}"
 
-    @y = d3.scale.linear()
-      .domain([0, @petitionData.maxCountryFrequency()])
-      .range([@height, 0])
+    @x ||= d3.scale.ordinal().domain(@countryLabels)
+    @x.rangeBands([0, @width])
 
-    @xAxis = d3.svg.axis().scale(@x).orient("bottom")
-    @yAxis = d3.svg.axis().scale(@y).orient("left")
+    @y ||= d3.scale.linear().domain([0, @petitionData.maxCountryFrequency()])
+    @y.range([@height, 0])
 
-  drawXAxis: (svg) =>
-    svg.append("g")
+  xAxisGroup: () =>
+    xAxisGroup = d3.select('g.x.axis')
+    return xAxisGroup unless xAxisGroup.empty()
+
+    @chartGroup().append("g")
       .attr("class", "x axis")
+
+  yAxisGroup: () =>
+    yAxisGroup = d3.select('g.y.axis')
+    return yAxisGroup unless yAxisGroup.empty()
+
+    @chartGroup().append("g")
+      .attr("class", "y axis")
+
+  drawXAxis: () =>
+    @xAxisGroup()
       .attr("transform", "translate(0," + @height + ")")
       .call(@xAxis)
       .selectAll("text")
@@ -40,19 +53,11 @@ class Chart
       .attr("y", 0)
       .style("text-anchor", "start");
 
-  drawYAxis: (svg) =>
-    svg.append("g")
-      .attr("class", "y axis")
-      .call(@yAxis)
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", -63)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Signatures")
+  drawYAxis: () =>
+    @yAxisGroup().call(@yAxis)
 
-  setupSignatureCounts: (svg) =>
-    svg.selectAll(".bar")
+  setupSignatureCounts: () =>
+    @chartGroup().selectAll(".bar")
       .data(@data)
       .enter().append("rect")
       .attr("class", "bar")
@@ -61,19 +66,37 @@ class Chart
       .attr("x", (d, i) => i * @barWidth)
       .attr("y", (d) => @y(d))
 
+  svg:() =>
+    d3.select("#chart")
+      .attr("width", @width + margin.left + margin.right)
+      .attr("height", @height + margin.top + margin.bottom)
+
+  chartGroup:() =>
+    chartGroup = d3.select('.chart-group')
+    return chartGroup unless chartGroup.empty()
+
+    @svg()
+      .append("g")
+      .attr("class", "chart-group")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
   draw: () =>
     @recalculateScales()
 
-    svg = d3.select("#chart")
-      .attr("width", @width + margin.left + margin.right)
-      .attr("height", @height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    @xAxis = d3.svg.axis().scale(@x).orient("bottom")
+    @yAxis = d3.svg.axis().scale(@y).orient("left")
 
-    @drawXAxis(svg)
-    @drawYAxis(svg)
+    @drawXAxis()
+    @drawYAxis()
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -63)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Signatures")
 
-    @setupSignatureCounts(svg)
+
+    @setupSignatureCounts()
 
 setupTitle = (petitionData) ->
   $('.petition-title').text(petitionData.title())

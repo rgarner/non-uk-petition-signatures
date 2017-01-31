@@ -16,9 +16,13 @@
     function Chart(petitionData1) {
       this.petitionData = petitionData1;
       this.draw = bind(this.draw, this);
+      this.chartGroup = bind(this.chartGroup, this);
+      this.svg = bind(this.svg, this);
       this.setupSignatureCounts = bind(this.setupSignatureCounts, this);
       this.drawYAxis = bind(this.drawYAxis, this);
       this.drawXAxis = bind(this.drawXAxis, this);
+      this.yAxisGroup = bind(this.yAxisGroup, this);
+      this.xAxisGroup = bind(this.xAxisGroup, this);
       this.recalculateScales = bind(this.recalculateScales, this);
       this.resize = bind(this.resize, this);
       this.countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
@@ -31,31 +35,55 @@
     }
 
     Chart.prototype.resize = function() {
-      console.log('gi');
       this.recalculateScales();
-      return this.draw();
+      this.drawXAxis();
+      this.drawYAxis();
+      return this.svg().selectAll('rect').attr('x', (function(_this) {
+        return function(d, i) {
+          return i * _this.barWidth;
+        };
+      })(this)).attr('width', this.barWidth - 1);
     };
 
     Chart.prototype.recalculateScales = function() {
       this.width = window.innerWidth - margin.left - margin.right;
       this.height = 550 - margin.top - margin.bottom;
       this.barWidth = this.width / this.data.length;
-      this.x = d3.scale.ordinal().domain(this.countryLabels).rangeBands([0, this.width]);
-      this.y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]).range([this.height, 0]);
-      this.xAxis = d3.svg.axis().scale(this.x).orient("bottom");
-      return this.yAxis = d3.svg.axis().scale(this.y).orient("left");
+      console.log(this.width + "," + this.height + ": " + this.barWidth);
+      this.x || (this.x = d3.scale.ordinal().domain(this.countryLabels));
+      this.x.rangeBands([0, this.width]);
+      this.y || (this.y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]));
+      return this.y.range([this.height, 0]);
     };
 
-    Chart.prototype.drawXAxis = function(svg) {
-      return svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").call(this.xAxis).selectAll("text").attr("transform", "rotate(90)").attr("x", 15).attr("y", 0).style("text-anchor", "start");
+    Chart.prototype.xAxisGroup = function() {
+      var xAxisGroup;
+      xAxisGroup = d3.select('g.x.axis');
+      if (!xAxisGroup.empty()) {
+        return xAxisGroup;
+      }
+      return this.chartGroup().append("g").attr("class", "x axis");
     };
 
-    Chart.prototype.drawYAxis = function(svg) {
-      return svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "rotate(-90)").attr("y", -63).attr("dy", ".71em").style("text-anchor", "end").text("Signatures");
+    Chart.prototype.yAxisGroup = function() {
+      var yAxisGroup;
+      yAxisGroup = d3.select('g.y.axis');
+      if (!yAxisGroup.empty()) {
+        return yAxisGroup;
+      }
+      return this.chartGroup().append("g").attr("class", "y axis");
     };
 
-    Chart.prototype.setupSignatureCounts = function(svg) {
-      return svg.selectAll(".bar").data(this.data).enter().append("rect").attr("class", "bar").attr("width", this.barWidth - 1).attr("height", (function(_this) {
+    Chart.prototype.drawXAxis = function() {
+      return this.xAxisGroup().attr("transform", "translate(0," + this.height + ")").call(this.xAxis).selectAll("text").attr("transform", "rotate(90)").attr("x", 15).attr("y", 0).style("text-anchor", "start");
+    };
+
+    Chart.prototype.drawYAxis = function() {
+      return this.yAxisGroup().call(this.yAxis);
+    };
+
+    Chart.prototype.setupSignatureCounts = function() {
+      return this.chartGroup().selectAll(".bar").data(this.data).enter().append("rect").attr("class", "bar").attr("width", this.barWidth - 1).attr("height", (function(_this) {
         return function(d) {
           return _this.height - _this.y(d);
         };
@@ -70,13 +98,26 @@
       })(this));
     };
 
+    Chart.prototype.svg = function() {
+      return d3.select("#chart").attr("width", this.width + margin.left + margin.right).attr("height", this.height + margin.top + margin.bottom);
+    };
+
+    Chart.prototype.chartGroup = function() {
+      var chartGroup;
+      chartGroup = d3.select('.chart-group');
+      if (!chartGroup.empty()) {
+        return chartGroup;
+      }
+      return this.svg().append("g").attr("class", "chart-group").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    };
+
     Chart.prototype.draw = function() {
-      var svg;
       this.recalculateScales();
-      svg = d3.select("#chart").attr("width", this.width + margin.left + margin.right).attr("height", this.height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      this.drawXAxis(svg);
-      this.drawYAxis(svg);
-      return this.setupSignatureCounts(svg);
+      this.xAxis = d3.svg.axis().scale(this.x).orient("bottom");
+      this.yAxis = d3.svg.axis().scale(this.y).orient("left");
+      this.drawXAxis();
+      this.drawYAxis().append("text").attr("transform", "rotate(-90)").attr("y", -63).attr("dy", ".71em").style("text-anchor", "end").text("Signatures");
+      return this.setupSignatureCounts();
     };
 
     return Chart;
