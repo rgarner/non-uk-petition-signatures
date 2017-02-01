@@ -164,7 +164,7 @@ class @PageManager
 
     csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n"
     for country, index in signaturesByCountry
-      row = [country.code, country.name, country.signature_count].join(",")
+      row = [country.code, "\"#{country.name}\"", country.signature_count].join(",")
       csv += row
       csv += "\n" if index < signaturesByCountry.length
 
