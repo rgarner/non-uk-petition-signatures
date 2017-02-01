@@ -173,9 +173,13 @@
           PageManager.setupTitle(petitionData);
           PageManager.setupCsvDownload(petitionData);
           PageManager.setupToShowButtons();
-          return PageManager.createOrReplaceChart(petitionData, 25);
+          return PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue());
         }
       });
+    };
+
+    PageManager.currentToShowValue = function() {
+      return parseInt($('button.to-show.active').attr('data-to-show'));
     };
 
     PageManager.setupToShowButtons = function(petitionData) {

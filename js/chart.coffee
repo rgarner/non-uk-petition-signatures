@@ -126,7 +126,10 @@ class @PageManager
         PageManager.setupTitle(petitionData)
         PageManager.setupCsvDownload(petitionData)
         PageManager.setupToShowButtons()
-        PageManager.createOrReplaceChart(petitionData, 25)
+        PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue())
+
+  @currentToShowValue: () ->
+    parseInt($('button.to-show.active').attr('data-to-show'))
 
   @setupToShowButtons: (petitionData) ->
     $('button.to-show').click (e) ->
