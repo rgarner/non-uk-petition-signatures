@@ -124,22 +124,30 @@ class @PageManager
       success: (petitionJson) ->
         petitionData = new PetitionData(petitionJson)
         PageManager.setupTitle(petitionData)
+        PageManager.setupSubtitle(petitionData)
         PageManager.setupProgressBar(petitionData)
         PageManager.setupNonUkSummary(petitionData)
         PageManager.setupCsvDownload(petitionData)
         PageManager.setupToShowButtons()
         PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue())
 
+  @setupSubtitle: (petitionData) ->
+    $('.subtitle .n')
+      .text(petitionData.stats().total.toLocaleString('en-GB', {minimumFractionDigits: 0}))
+
   @setupProgressBar: (petitionData) ->
     stats = petitionData.stats()
     $('.progress-bar.uk').attr('style', "width: #{stats.percentage_uk.toFixed(1)}%")
-    $('.progress-bar.uk span').text("#{stats.percentage_uk.toFixed(1)}% UK")
+    $('.progress-bar.uk span').text(
+      "#{stats.uk_total.toLocaleString('en-GB', {minimumFractionDigits: 0})} (#{stats.percentage_uk.toFixed(1)}%) UK")
     $('.progress-bar.non-uk').attr('style', "width: #{stats.percentage_international.toFixed(1)}%")
     $('.progress-bar.non-uk span').text("#{stats.percentage_international.toFixed(1)}% non-UK")
 
   @setupNonUkSummary: (petitionData) ->
-    $('.non-uk-summary .n').text(PageManager.currentToShowValue())
-    $('.non-uk-summary .percent').text("#{petitionData.stats().percentage_international.toFixed(1)}%")
+    stats = petitionData.stats()
+    $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue())
+    $('.non-uk-summary .n').text("#{stats.international_total.toLocaleString('en-GB', {minimumFractionDigits: 0})}")
+    $('.non-uk-summary .percent').text("#{stats.percentage_international.toFixed(1)}%")
 
   @currentToShowValue: () ->
     parseInt($('button.to-show.active').attr('data-to-show'))

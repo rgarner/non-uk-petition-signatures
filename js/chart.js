@@ -171,6 +171,7 @@
           var petitionData;
           petitionData = new PetitionData(petitionJson);
           PageManager.setupTitle(petitionData);
+          PageManager.setupSubtitle(petitionData);
           PageManager.setupProgressBar(petitionData);
           PageManager.setupNonUkSummary(petitionData);
           PageManager.setupCsvDownload(petitionData);
@@ -180,18 +181,31 @@
       });
     };
 
+    PageManager.setupSubtitle = function(petitionData) {
+      return $('.subtitle .n').text(petitionData.stats().total.toLocaleString('en-GB', {
+        minimumFractionDigits: 0
+      }));
+    };
+
     PageManager.setupProgressBar = function(petitionData) {
       var stats;
       stats = petitionData.stats();
       $('.progress-bar.uk').attr('style', "width: " + (stats.percentage_uk.toFixed(1)) + "%");
-      $('.progress-bar.uk span').text((stats.percentage_uk.toFixed(1)) + "% UK");
+      $('.progress-bar.uk span').text((stats.uk_total.toLocaleString('en-GB', {
+        minimumFractionDigits: 0
+      })) + " (" + (stats.percentage_uk.toFixed(1)) + "%) UK");
       $('.progress-bar.non-uk').attr('style', "width: " + (stats.percentage_international.toFixed(1)) + "%");
       return $('.progress-bar.non-uk span').text((stats.percentage_international.toFixed(1)) + "% non-UK");
     };
 
     PageManager.setupNonUkSummary = function(petitionData) {
-      $('.non-uk-summary .n').text(PageManager.currentToShowValue());
-      return $('.non-uk-summary .percent').text((petitionData.stats().percentage_international.toFixed(1)) + "%");
+      var stats;
+      stats = petitionData.stats();
+      $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue());
+      $('.non-uk-summary .n').text("" + (stats.international_total.toLocaleString('en-GB', {
+        minimumFractionDigits: 0
+      })));
+      return $('.non-uk-summary .percent').text((stats.percentage_international.toFixed(1)) + "%");
     };
 
     PageManager.currentToShowValue = function() {
