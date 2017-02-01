@@ -1,3 +1,6 @@
+String::capitalizeFirstLetter = ->
+    @charAt(0).toUpperCase() + @slice(1)
+
 class Chart
   margin = { top: 40, right: 70, bottom: 150, left: 70 }
 
@@ -164,8 +167,12 @@ class @PageManager
     $('.petition-title a').remove()
     $('.petition-title').append('<a />')
     $('.petition-title a')
-      .text(petitionData.title())
+      .text("#{petitionData.title()} ")
       .attr('href', petitionData.url())
+
+    $('.petition-title').append(
+      "<span class='badge #{petitionData.state()}'>#{petitionData.state().capitalizeFirstLetter()}</span>"
+    )
 
   @download: (petitionData) ->
     signaturesByCountry = petitionData.signaturesByCountryDescendingCount({filter: 'NONE'})

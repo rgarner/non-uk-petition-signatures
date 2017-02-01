@@ -1,3 +1,13 @@
 rect.bar {
     fill: orange;
 }
+
+h1 .open {
+    background-color: #3e8f3e;
+    font-size: 60%;
+}
+
+h1 .closed {
+    background-color: darkred;
+    font-size: 60%;
+}

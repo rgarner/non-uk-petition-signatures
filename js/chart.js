@@ -3,6 +3,10 @@
   var Chart,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
+  String.prototype.capitalizeFirstLetter = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+  };
+
   Chart = (function() {
     var margin;
 
@@ -226,7 +230,8 @@
       $('.petition-title').text('');
       $('.petition-title a').remove();
       $('.petition-title').append('<a />');
-      return $('.petition-title a').text(petitionData.title()).attr('href', petitionData.url());
+      $('.petition-title a').text((petitionData.title()) + " ").attr('href', petitionData.url());
+      return $('.petition-title').append("<span class='badge " + (petitionData.state()) + "'>" + (petitionData.state().capitalizeFirstLetter()) + "</span>");
     };
 
     PageManager.download = function(petitionData) {

@@ -10,6 +10,9 @@ class @PetitionData
   url: () =>
     @petitionJson.links.self.replace('.json', '')
 
+  state: () =>
+    @petitionJson.data.attributes.state
+
   signaturesByCountry: (options = { filter: FILTER} ) =>
     @_signaturesByCountry = @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != options.filter

@@ -16,6 +16,7 @@
       this.stats = bind(this.stats, this);
       this.uk = bind(this.uk, this);
       this.signaturesByCountry = bind(this.signaturesByCountry, this);
+      this.state = bind(this.state, this);
       this.url = bind(this.url, this);
       this.title = bind(this.title, this);
     }
@@ -26,6 +27,10 @@
 
     PetitionData.prototype.url = function() {
       return this.petitionJson.links.self.replace('.json', '');
+    };
+
+    PetitionData.prototype.state = function() {
+      return this.petitionJson.data.attributes.state;
     };
 
     PetitionData.prototype.signaturesByCountry = function(options) {
