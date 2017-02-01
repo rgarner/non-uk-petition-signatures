@@ -140,14 +140,20 @@ class @PageManager
 
   @setupProgressBar: (petitionData) ->
     stats = petitionData.stats()
+    wereAre = if petitionData.state() == 'open' then 'are' else 'were'
+
     $('.progress-bar.uk').attr('style', "width: #{stats.percentage_uk.toFixed(1)}%")
     $('.progress-bar.uk span').text(
-      "#{stats.uk_total.toLocaleString('en-GB', {minimumFractionDigits: 0})} (#{stats.percentage_uk.toFixed(1)}%) UK")
+      "#{stats.uk_total.toLocaleString(
+        'en-GB', {minimumFractionDigits: 0})} (#{stats.percentage_uk.toFixed(1)}%) #{wereAre} from the UK.")
     $('.progress-bar.non-uk').attr('style', "width: #{stats.percentage_international.toFixed(1)}%")
     $('.progress-bar.non-uk span').text("#{stats.percentage_international.toFixed(1)}% non-UK")
+    $('.were-are').text(wereAre)
 
   @setupNonUkSummary: (petitionData) ->
     stats = petitionData.stats()
+    $('.non-uk-summary .country-count').text(stats.non_uk_country_count)
+    console.log(stats.non_uk_country_count)
     $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue())
     $('.non-uk-summary .n').text("#{stats.international_total.toLocaleString('en-GB', {minimumFractionDigits: 0})}")
     $('.non-uk-summary .percent').text("#{stats.percentage_international.toFixed(1)}%")

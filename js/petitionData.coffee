@@ -14,7 +14,7 @@ class @PetitionData
     @petitionJson.data.attributes.state
 
   signaturesByCountry: (options = { filter: FILTER} ) =>
-    @_signaturesByCountry = @petitionJson.data.attributes.signatures_by_country.filter (country) ->
+    @_signaturesByCountry ||= @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != options.filter
 
   signatureCountForName: (name) ->
@@ -26,11 +26,13 @@ class @PetitionData
 
   stats: () =>
     total = @petitionJson.data.attributes.signature_count
+    non_uk_country_count = @signaturesByCountry().length
     uk_total = @uk().signature_count
     accumulator = (total, c) -> total += c.signature_count
     international_total = @signaturesByCountry().reduce(accumulator, 0)
     {
       total: total
+      non_uk_country_count: non_uk_country_count
       uk_total: uk_total
       international_total: international_total
       percentage_uk: (uk_total / total) * 100

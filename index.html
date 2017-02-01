@@ -28,60 +28,51 @@
     <script src="js/petitionsData.js" charset="utf-8"></script>
 </head>
 <body>
+<div>
 <header>
-    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-        <div class="nav-links">
-            <div class="navbar-header">
-                <span class="navbar-brand">
-                    GOV.UK out-of-country petition signatures
-                    <span class="beta badge">Unofficial nonsense</span>
-                </span>
-            </div>
-        </div>
+    <nav class="navbar navbar-inverse  navbar-collapse" role="navigation">
+        <span class="navbar-brand">
+            Non-UK petition signatures
+        </span>
+        <ul class="nav navbar-nav">
+
+            <li class="dropdown">
+                <a href="#" id="drpPetitions" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Select a petition <span class="caret"></span></a>
+                <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" ></ul>
+            </li>
+        </ul>
     </nav>
 </header>
 
-<article class="container-fluid">
+<article>
 
-<div class="row">
-    <div class="col-md-2 dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="drpPetitions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Select a petition:
-            <span class="caret"></span>
-        </button>
-        <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" ></ul>
-    </div>
+<h1 class="petition-title">Trump UK State Visit</h1>
+<h2 class="subtitle">Of <span class="n">n</span> signatures,</h2>
 
-    <div class="form-group col-md-8">
-        <label class="col-md-1">Show</label>
-        <div class="col-md-4 btn-group to-show" role="group" aria-label="...">
-            <button type="button" data-to-show="10" class="btn btn-default to-show">10</button>
-            <button type="button" data-to-show="25" class="btn btn-default to-show active">25</button>
-            <button type="button" data-to-show="50" class="btn btn-default to-show">50</button>
-            <button type="button" data-to-show="500" class="btn btn-default to-show">All</button>
-        </div>
+<div class="progress">
+    <div class="progress-bar uk" style="width: 50.0%">
+        <span>50% <span class="were-are">were</span> from the UK</span>
     </div>
 </div>
 
-<h1 class="petition-title">Trump UK State Visit</h1>
-<h2 class="subtitle">Of <span class="n">n</span> votes</h2>
-
-    <div class="progress">
-        <div class="progress-bar uk" style="width: 50.0%">
-            <span>50% UK</span>
-        </div>
-        <div class="progress-bar non-uk progress-bar-warning" style="width: 50.0%">
-            <span>50% Non-UK</span>
-        </div>
-    </div>
-
-<a id="download" href="#">Download as CSV</a>
-
 <h3 class="non-uk-summary">
-    The top <span class="slice-n"></span> countries of the <span class="n">n</span> (<span class="percent">n%</span>) of non-UK signatures
+    The remaining <span class="n">n</span> (<span class="percent">n%</span>) of non-UK signatures
+    <span class="were-are">were</span> from <span class="country-count">n</span> countries. These are the top
+    <div class="btn-group to-show" role="group" aria-label="...">
+        <button type="button" data-to-show="10" class="btn btn-default to-show">10</button>
+        <button type="button" data-to-show="25" class="btn btn-default to-show active">25</button>
+        <button type="button" data-to-show="50" class="btn btn-default to-show">50</button>
+        <button type="button" data-to-show="500" class="btn btn-default to-show">All</button>
+    </div>
+    :
 </h3>
 
+
 <div id="chartContainer">
+    <a id="download" href="#">
+        download CSV
+        <span class="glyphicon glyphicon-download"></span>
+    </a>
     <svg id="chart"></svg>
 </div>
 
@@ -92,7 +83,7 @@
     <p align="right">Petition Data © Crown, published under <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government License</a></p>
 </footer>
 
-
+</div>
 </body>
 
 </html>

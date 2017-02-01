@@ -39,9 +39,9 @@
           filter: FILTER
         };
       }
-      return this._signaturesByCountry = this.petitionJson.data.attributes.signatures_by_country.filter(function(country) {
+      return this._signaturesByCountry || (this._signaturesByCountry = this.petitionJson.data.attributes.signatures_by_country.filter(function(country) {
         return country.code !== options.filter;
-      });
+      }));
     };
 
     PetitionData.prototype.signatureCountForName = function(name) {
@@ -67,8 +67,9 @@
     };
 
     PetitionData.prototype.stats = function() {
-      var accumulator, international_total, total, uk_total;
+      var accumulator, international_total, non_uk_country_count, total, uk_total;
       total = this.petitionJson.data.attributes.signature_count;
+      non_uk_country_count = this.signaturesByCountry().length;
       uk_total = this.uk().signature_count;
       accumulator = function(total, c) {
         return total += c.signature_count;
@@ -76,6 +77,7 @@
       international_total = this.signaturesByCountry().reduce(accumulator, 0);
       return {
         total: total,
+        non_uk_country_count: non_uk_country_count,
         uk_total: uk_total,
         international_total: international_total,
         percentage_uk: (uk_total / total) * 100,

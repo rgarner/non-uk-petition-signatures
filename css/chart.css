@@ -1,5 +1,13 @@
+body {
+    font-family: BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
 rect.bar {
     fill: orange;
+}
+
+.petition-title {
+    clear: left;
 }
 
 h1 .open {
@@ -11,3 +19,35 @@ h1 .closed {
     background-color: darkred;
     font-size: 60%;
 }
+
+#chartContainer {
+    position: relative;
+}
+
+#download {
+    font-size: 120%;
+    display: block;
+    position:absolute;
+    right:70px; top: 40px;
+    margin-bottom: 0;
+    z-index: 99;
+}
+
+.progress {
+    clear: both;
+    margin: 0 1px;
+    min-height:2em;
+    vertical-align: middle;
+}
+
+.progress span {
+    display: block;
+    margin-top: 0.24em;
+    font-size: 150%;
+}
+
+.subtitle {
+    width: 100%;
+    clear: none;
+}
+

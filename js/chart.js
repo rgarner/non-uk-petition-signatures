@@ -192,19 +192,23 @@
     };
 
     PageManager.setupProgressBar = function(petitionData) {
-      var stats;
+      var stats, wereAre;
       stats = petitionData.stats();
+      wereAre = petitionData.state() === 'open' ? 'are' : 'were';
       $('.progress-bar.uk').attr('style', "width: " + (stats.percentage_uk.toFixed(1)) + "%");
       $('.progress-bar.uk span').text((stats.uk_total.toLocaleString('en-GB', {
         minimumFractionDigits: 0
-      })) + " (" + (stats.percentage_uk.toFixed(1)) + "%) UK");
+      })) + " (" + (stats.percentage_uk.toFixed(1)) + "%) " + wereAre + " from the UK.");
       $('.progress-bar.non-uk').attr('style', "width: " + (stats.percentage_international.toFixed(1)) + "%");
-      return $('.progress-bar.non-uk span').text((stats.percentage_international.toFixed(1)) + "% non-UK");
+      $('.progress-bar.non-uk span').text((stats.percentage_international.toFixed(1)) + "% non-UK");
+      return $('.were-are').text(wereAre);
     };
 
     PageManager.setupNonUkSummary = function(petitionData) {
       var stats;
       stats = petitionData.stats();
+      $('.non-uk-summary .country-count').text(stats.non_uk_country_count);
+      console.log(stats.non_uk_country_count);
       $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue());
       $('.non-uk-summary .n').text("" + (stats.international_total.toLocaleString('en-GB', {
         minimumFractionDigits: 0
