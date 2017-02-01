@@ -1,9 +1,10 @@
 class Chart
   margin = { top: 40, right: 70, bottom: 150, left: 70 }
 
-  constructor: (@petitionData) ->
-    @countryLabels = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.name
-    @data = @petitionData.signaturesByCountryDescendingCount().map (country) -> country.signature_count
+  constructor: (@petitionData, @options = { toShow: 25 }) ->
+    slicedData = @petitionData.signaturesByCountryDescendingCount({filter: 'GB', top: @options.toShow})
+    @countryLabels = slicedData.map (country) -> country.name
+    @data = slicedData.map (country) -> country.signature_count
 
     d3.select(window).on('resize', @resize);
 
@@ -108,6 +109,12 @@ class Chart
     $('#chartContainer').append('<svg id="chart" />')
 
 class @PageManager
+  @createOrReplaceChart = (petitionData, toShow) ->
+    if window._chart
+      window._chart.replace()
+    window._chart = new Chart(petitionData, { filter: 'GB', toShow: toShow })
+    window._chart.draw()
+
   @setup: (petitionUrl) ->
     $.ajax
       url: petitionUrl
@@ -118,10 +125,14 @@ class @PageManager
         petitionData = new PetitionData(petitionJson)
         PageManager.setupTitle(petitionData)
         PageManager.setupCsvDownload(petitionData)
-        if window._chart
-          window._chart.replace()
-        window._chart = new Chart(petitionData)
-        window._chart.draw()
+        PageManager.setupToShowButtons()
+        PageManager.createOrReplaceChart(petitionData, 25)
+
+  @setupToShowButtons: (petitionData) ->
+    $('button.to-show').click (e) ->
+      $('button.to-show').removeClass('active')
+      toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'))
+      PageManager.createOrReplaceChart(window._chart.petitionData, toShow)
 
   @setupTitle: (petitionData) ->
     $('.petition-title').text('')

@@ -30,14 +30,25 @@
 
 <article class="container-fluid">
 
-<ul class="navbar-brand"></ul>
 
-<div class="dropdown">
-    <button class="btn btn-default dropdown-toggle" type="button" id="drpPetitions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-        Select a petition:
-        <span class="caret"></span>
-    </button>
-    <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" ></ul>
+<div class="row">
+    <div class="col-md-2 dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" id="drpPetitions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Select a petition:
+            <span class="caret"></span>
+        </button>
+        <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" ></ul>
+    </div>
+
+    <div class="form-group col-md-8">
+        <label class="col-md-1">Show</label>
+        <div class="col-md-4 btn-group to-show" role="group" aria-label="...">
+            <button type="button" data-to-show="10" class="btn btn-default to-show">10</button>
+            <button type="button" data-to-show="25" class="btn btn-default to-show active">25</button>
+            <button type="button" data-to-show="50" class="btn btn-default to-show">50</button>
+            <button type="button" data-to-show="500" class="btn btn-default to-show">All</button>
+        </div>
+    </div>
 </div>
 
 <h1 class="petition-title">Trump UK State Visit</h1>

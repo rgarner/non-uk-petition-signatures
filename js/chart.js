@@ -13,8 +13,12 @@
       left: 70
     };
 
-    function Chart(petitionData1) {
+    function Chart(petitionData1, options) {
+      var slicedData;
       this.petitionData = petitionData1;
+      this.options = options != null ? options : {
+        toShow: 25
+      };
       this.replace = bind(this.replace, this);
       this.draw = bind(this.draw, this);
       this.chartGroup = bind(this.chartGroup, this);
@@ -26,10 +30,14 @@
       this.xAxisGroup = bind(this.xAxisGroup, this);
       this.recalculateScales = bind(this.recalculateScales, this);
       this.resize = bind(this.resize, this);
-      this.countryLabels = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
+      slicedData = this.petitionData.signaturesByCountryDescendingCount({
+        filter: 'GB',
+        top: this.options.toShow
+      });
+      this.countryLabels = slicedData.map(function(country) {
         return country.name;
       });
-      this.data = this.petitionData.signaturesByCountryDescendingCount().map(function(country) {
+      this.data = slicedData.map(function(country) {
         return country.signature_count;
       });
       d3.select(window).on('resize', this.resize);
@@ -141,6 +149,17 @@
   this.PageManager = (function() {
     function PageManager() {}
 
+    PageManager.createOrReplaceChart = function(petitionData, toShow) {
+      if (window._chart) {
+        window._chart.replace();
+      }
+      window._chart = new Chart(petitionData, {
+        filter: 'GB',
+        toShow: toShow
+      });
+      return window._chart.draw();
+    };
+
     PageManager.setup = function(petitionUrl) {
       return $.ajax({
         url: petitionUrl,
@@ -153,12 +172,18 @@
           petitionData = new PetitionData(petitionJson);
           PageManager.setupTitle(petitionData);
           PageManager.setupCsvDownload(petitionData);
-          if (window._chart) {
-            window._chart.replace();
-          }
-          window._chart = new Chart(petitionData);
-          return window._chart.draw();
+          PageManager.setupToShowButtons();
+          return PageManager.createOrReplaceChart(petitionData, 25);
         }
+      });
+    };
+
+    PageManager.setupToShowButtons = function(petitionData) {
+      return $('button.to-show').click(function(e) {
+        var toShow;
+        $('button.to-show').removeClass('active');
+        toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'));
+        return PageManager.createOrReplaceChart(window._chart.petitionData, toShow);
       });
     };
 
@@ -210,3 +235,5 @@
   });
 
 }).call(this);
+
+//# sourceMappingURL=chart.js.map
