@@ -6,7 +6,7 @@ class Chart
     @countryLabels = slicedData.map (country) -> country.name
     @data = slicedData.map (country) -> country.signature_count
 
-    d3.select(window).on('resize', @resize);
+    d3.select(window).on('resize', @resize)
 
   resize: () =>
     @recalculateScales()
@@ -177,7 +177,7 @@ class @PageManager
       csv += "\n" if index < signaturesByCountry.length
 
     encodedUri = encodeURI(csv)
-    window.open(encodedUri);
+    window.open(encodedUri)
 
   @setupCsvDownload: (petitionData) ->
     $('#download').unbind('click').click ->
