@@ -13,6 +13,7 @@
       this.petitionJson = petitionJson;
       this.maxCountryFrequency = bind(this.maxCountryFrequency, this);
       this.signaturesByCountryDescendingCount = bind(this.signaturesByCountryDescendingCount, this);
+      this.stats = bind(this.stats, this);
       this.uk = bind(this.uk, this);
       this.signaturesByCountry = bind(this.signaturesByCountry, this);
       this.url = bind(this.url, this);
@@ -58,6 +59,23 @@
         }
         return results;
       })())[0];
+    };
+
+    PetitionData.prototype.stats = function() {
+      var accumulator, international_total, total, uk_total;
+      total = this.petitionJson.data.attributes.signature_count;
+      uk_total = this.uk().signature_count;
+      accumulator = function(total, c) {
+        return total += c.signature_count;
+      };
+      international_total = this.signaturesByCountry().reduce(accumulator, 0);
+      return {
+        total: total,
+        uk_total: uk_total,
+        international_total: international_total,
+        percentage_uk: (uk_total / total) * 100,
+        percentage_international: (international_total / total) * 100
+      };
     };
 
     PetitionData.prototype.signaturesByCountryDescendingCount = function(options) {

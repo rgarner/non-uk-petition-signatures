@@ -124,9 +124,22 @@ class @PageManager
       success: (petitionJson) ->
         petitionData = new PetitionData(petitionJson)
         PageManager.setupTitle(petitionData)
+        PageManager.setupProgressBar(petitionData)
+        PageManager.setupNonUkSummary(petitionData)
         PageManager.setupCsvDownload(petitionData)
         PageManager.setupToShowButtons()
         PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue())
+
+  @setupProgressBar: (petitionData) ->
+    stats = petitionData.stats()
+    $('.progress-bar.uk').attr('style', "width: #{stats.percentage_uk.toFixed(1)}%")
+    $('.progress-bar.uk span').text("#{stats.percentage_uk.toFixed(1)}% UK")
+    $('.progress-bar.non-uk').attr('style', "width: #{stats.percentage_international.toFixed(1)}%")
+    $('.progress-bar.non-uk span').text("#{stats.percentage_international.toFixed(1)}% non-UK")
+
+  @setupNonUkSummary: (petitionData) ->
+    $('.non-uk-summary .n').text(PageManager.currentToShowValue())
+    $('.non-uk-summary .percent').text("#{petitionData.stats().percentage_international.toFixed(1)}%")
 
   @currentToShowValue: () ->
     parseInt($('button.to-show.active').attr('data-to-show'))
@@ -136,6 +149,7 @@ class @PageManager
       $('button.to-show').removeClass('active')
       toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'))
       PageManager.createOrReplaceChart(window._chart.petitionData, toShow)
+      PageManager.setupNonUkSummary(window._chart.petitionData)
 
   @setupTitle: (petitionData) ->
     $('.petition-title').text('')
@@ -144,10 +158,6 @@ class @PageManager
     $('.petition-title a')
       .text(petitionData.title())
       .attr('href', petitionData.url())
-
-    formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {minimumFractionDigits: 0});
-    $('.uk-signatures a').remove()
-    $('.uk-signatures').text("(#{formattedSignatureCount} UK signatures)")
 
   @download: (petitionData) ->
     signaturesByCountry = petitionData.signaturesByCountryDescendingCount({filter: 'NONE'})

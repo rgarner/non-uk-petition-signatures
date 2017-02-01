@@ -171,11 +171,27 @@
           var petitionData;
           petitionData = new PetitionData(petitionJson);
           PageManager.setupTitle(petitionData);
+          PageManager.setupProgressBar(petitionData);
+          PageManager.setupNonUkSummary(petitionData);
           PageManager.setupCsvDownload(petitionData);
           PageManager.setupToShowButtons();
           return PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue());
         }
       });
+    };
+
+    PageManager.setupProgressBar = function(petitionData) {
+      var stats;
+      stats = petitionData.stats();
+      $('.progress-bar.uk').attr('style', "width: " + (stats.percentage_uk.toFixed(1)) + "%");
+      $('.progress-bar.uk span').text((stats.percentage_uk.toFixed(1)) + "% UK");
+      $('.progress-bar.non-uk').attr('style', "width: " + (stats.percentage_international.toFixed(1)) + "%");
+      return $('.progress-bar.non-uk span').text((stats.percentage_international.toFixed(1)) + "% non-UK");
+    };
+
+    PageManager.setupNonUkSummary = function(petitionData) {
+      $('.non-uk-summary .n').text(PageManager.currentToShowValue());
+      return $('.non-uk-summary .percent').text((petitionData.stats().percentage_international.toFixed(1)) + "%");
     };
 
     PageManager.currentToShowValue = function() {
@@ -187,21 +203,16 @@
         var toShow;
         $('button.to-show').removeClass('active');
         toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'));
-        return PageManager.createOrReplaceChart(window._chart.petitionData, toShow);
+        PageManager.createOrReplaceChart(window._chart.petitionData, toShow);
+        return PageManager.setupNonUkSummary(window._chart.petitionData);
       });
     };
 
     PageManager.setupTitle = function(petitionData) {
-      var formattedSignatureCount;
       $('.petition-title').text('');
       $('.petition-title a').remove();
       $('.petition-title').append('<a />');
-      $('.petition-title a').text(petitionData.title()).attr('href', petitionData.url());
-      formattedSignatureCount = petitionData.uk().signature_count.toLocaleString('en-GB', {
-        minimumFractionDigits: 0
-      });
-      $('.uk-signatures a').remove();
-      return $('.uk-signatures').text("(" + formattedSignatureCount + " UK signatures)");
+      return $('.petition-title a').text(petitionData.title()).attr('href', petitionData.url());
     };
 
     PageManager.download = function(petitionData) {
