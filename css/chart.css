@@ -51,3 +51,7 @@ h1 .closed {
     clear: none;
 }
 
+h3.non-uk-summary {
+    line-height: 1.4em;
+}
+
