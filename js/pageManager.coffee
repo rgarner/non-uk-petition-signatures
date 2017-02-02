@@ -53,7 +53,7 @@ class @PageManager
   @currentToShowValue: () ->
     parseInt($('button.to-show.active').attr('data-to-show'))
 
-  @setupToShowButtons: (petitionData) ->
+  @setupToShowButtons: () ->
     $('button.to-show').click (e) ->
       $('button.to-show').removeClass('active')
       toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'))
