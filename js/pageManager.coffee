@@ -84,7 +84,7 @@ class @PageManager
       "<span class='badge #{petitionData.state()}'>#{petitionData.state().capitalizeFirstLetter()}</span>"
     )
 
-  @download: (petitionData) ->
+  download = (petitionData) ->
     signaturesByCountry = petitionData.signaturesByCountryDescendingCount({filter: 'NONE'})
 
     csv = "data:text/csv;charset=utf-8,country_code, country_name, signature_count\n"
@@ -98,7 +98,7 @@ class @PageManager
 
   setupCsvDownload = (petitionData) ->
     $('#download').unbind('click').click ->
-      PageManager.download(petitionData)
+      download(petitionData)
 
   toggleSubtitleVisibility = (nowCurrent) ->
     showingClass = ".#{nowCurrent}"
@@ -108,4 +108,3 @@ class @PageManager
 
   switchTo = (ukNonUk) ->
     toggleSubtitleVisibility(ukNonUk)
-    console.log("switching to #{ukNonUk}")
