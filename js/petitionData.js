@@ -44,12 +44,6 @@
       }));
     };
 
-    PetitionData.prototype.signatureCountForName = function(name) {
-      return this.signaturesByCountry().find(function(c) {
-        return c.name === name;
-      }).signature_count;
-    };
-
     PetitionData.prototype.uk = function() {
       var c, countries;
       countries = this.petitionJson.data.attributes.signatures_by_country;
