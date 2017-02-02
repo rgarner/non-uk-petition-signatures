@@ -84,7 +84,7 @@
         selectedMenuItem = $(e.currentTarget);
         selectedMenuItem.parent('li').addClass('disabled');
         $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
-        return switchTo(selectedMenuItem.text());
+        return switchTo(selectedMenuItem.text().toLowerCase());
       });
     };
 
@@ -132,8 +132,8 @@
 
     toggleSubtitleVisibility = function(nowCurrent) {
       var hidingClass, showingClass;
-      showingClass = "." + (nowCurrent.toLowerCase());
-      hidingClass = nowCurrent === 'UK' ? '.non-uk' : '.uk';
+      showingClass = "." + nowCurrent;
+      hidingClass = nowCurrent === 'uk' ? '.non-uk' : '.uk';
       $(showingClass).removeClass('hidden');
       return $(hidingClass).addClass('hidden');
     };

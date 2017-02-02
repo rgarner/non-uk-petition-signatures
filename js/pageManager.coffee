@@ -63,7 +63,7 @@ class @PageManager
       selectedMenuItem.parent('li').addClass('disabled')
       $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
 
-      switchTo(selectedMenuItem.text())
+      switchTo(selectedMenuItem.text().toLowerCase())
 
   setupToShowButtons = ->
     $('button.to-show').click (e) ->
@@ -101,8 +101,8 @@ class @PageManager
       PageManager.download(petitionData)
 
   toggleSubtitleVisibility = (nowCurrent) ->
-    showingClass = ".#{nowCurrent.toLowerCase()}"
-    hidingClass = if nowCurrent == 'UK' then '.non-uk' else '.uk'
+    showingClass = ".#{nowCurrent}"
+    hidingClass = if nowCurrent == 'uk' then '.non-uk' else '.uk'
     $(showingClass).removeClass('hidden')
     $(hidingClass).addClass('hidden')
 
