@@ -28,6 +28,7 @@
           PageManager.setupSubtitle(petitionData);
           PageManager.setupProgressBar(petitionData);
           PageManager.setupToShowButtons();
+          PageManager.setupUkNonUkButtons();
           PageManager.setupNonUkSummary(petitionData);
           PageManager.setupCsvDownload(petitionData);
           return PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue());
@@ -58,7 +59,6 @@
       var stats;
       stats = petitionData.stats();
       $('.non-uk-summary .country-count').text(stats.non_uk_country_count);
-      console.log(stats.non_uk_country_count);
       $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue());
       $('.non-uk-summary .n').text("" + (stats.international_total.toLocaleString('en-GB', {
         minimumFractionDigits: 0
@@ -70,7 +70,18 @@
       return parseInt($('button.to-show.active').attr('data-to-show'));
     };
 
-    PageManager.setupToShowButtons = function(petitionData) {
+    PageManager.setupUkNonUkButtons = function() {
+      return $('.uk-non-uk .dropdown-menu a').click(function(e) {
+        var selectedMenuItem;
+        $('.uk-non-uk .dropdown-menu li').removeClass('disabled');
+        selectedMenuItem = $(e.currentTarget);
+        selectedMenuItem.parent('li').addClass('disabled');
+        $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
+        return PageManager.switchTo(selectedMenuItem.text());
+      });
+    };
+
+    PageManager.setupToShowButtons = function() {
       return $('button.to-show').click(function(e) {
         var toShow;
         $('button.to-show').removeClass('active');
@@ -110,6 +121,10 @@
       return $('#download').unbind('click').click(function() {
         return PageManager.download(petitionData);
       });
+    };
+
+    PageManager.switchTo = function(ukNonUk) {
+      return console.log("switching to " + ukNonUk);
     };
 
     return PageManager;
