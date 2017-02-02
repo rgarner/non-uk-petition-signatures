@@ -17,6 +17,10 @@ class @PetitionData
     @_signaturesByCountry ||= @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != options.filter
 
+  signaturesByConstituencyDescendingCount: () =>
+    @petitionJson.data.attributes.signatures_by_constituency.sort (prev, current) ->
+      if current.signature_count > prev.signature_count then 1 else -1
+
   uk: () =>
     countries = @petitionJson.data.attributes.signatures_by_country
     (c for c in countries when c.code is 'GB')[0]
