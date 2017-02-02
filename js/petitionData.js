@@ -3,9 +3,11 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.PetitionData = (function() {
-    var FILTER, TOP;
+    var ALL, FILTER, TOP;
 
     TOP = 25;
+
+    ALL = 1000;
 
     FILTER = 'GB';
 
@@ -45,14 +47,21 @@
       }));
     };
 
-    PetitionData.prototype.signaturesByConstituencyDescendingCount = function() {
-      return this.petitionJson.data.attributes.signatures_by_constituency.sort(function(prev, current) {
+    PetitionData.prototype.signaturesByConstituencyDescendingCount = function(options) {
+      var descending;
+      if (options == null) {
+        options = {
+          top: ALL
+        };
+      }
+      descending = this.petitionJson.data.attributes.signatures_by_constituency.sort(function(prev, current) {
         if (current.signature_count > prev.signature_count) {
           return 1;
         } else {
           return -1;
         }
       });
+      return descending.slice(0, +(options.top - 1) + 1 || 9e9);
     };
 
     PetitionData.prototype.uk = function() {

@@ -3,11 +3,11 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.PageManager = (function() {
-    var currentToShowValue, toggleSubtitleVisibility;
+    var currentToShowValue;
 
     function PageManager(petitionUrl) {
       this.petitionUrl = petitionUrl;
-      this.switchTo = bind(this.switchTo, this);
+      this.switchToSelectedUkNonUk = bind(this.switchToSelectedUkNonUk, this);
       this.setupCsvDownload = bind(this.setupCsvDownload, this);
       this.downloadConstituencyCsv = bind(this.downloadConstituencyCsv, this);
       this.downloadCountryCsv = bind(this.downloadCountryCsv, this);
@@ -22,13 +22,29 @@
       this.createOrReplaceChart = bind(this.createOrReplaceChart, this);
     }
 
-    PageManager.prototype.createOrReplaceChart = function(toShow) {
+    PageManager.prototype.createOrReplaceChart = function() {
+      var data, slicedData, xAxisLabels;
       if (window._chart) {
         window._chart.replace();
       }
-      window._chart = new Chart(this.petitionData, {
-        filter: 'GB',
-        toShow: toShow
+      if (this.ukNonUk() === 'uk') {
+        slicedData = this.petitionData.signaturesByConstituencyDescendingCount({
+          top: currentToShowValue()
+        });
+      } else {
+        slicedData = this.petitionData.signaturesByCountryDescendingCount({
+          filter: 'GB',
+          top: currentToShowValue()
+        });
+      }
+      xAxisLabels = slicedData.map(function(area) {
+        return area.name;
+      });
+      data = slicedData.map(function(area) {
+        return area.signature_count;
+      });
+      window._chart = new Chart(data, xAxisLabels, {
+        toShow: currentToShowValue()
       });
       return window._chart.draw();
     };
@@ -49,9 +65,9 @@
             _this.setupToShowButtons();
             _this.setupUkNonUkButtons();
             _this.setupNonUkSummary();
-            _this.setupCsvDownload('non-uk');
-            _this.createOrReplaceChart(currentToShowValue());
-            return _this.setupUkSummary();
+            _this.setupCsvDownload();
+            _this.setupUkSummary();
+            return _this.createOrReplaceChart(currentToShowValue());
           };
         })(this)
       });
@@ -103,7 +119,7 @@
           selectedMenuItem = $(e.currentTarget);
           selectedMenuItem.parent('li').addClass('disabled');
           $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
-          return _this.switchTo(selectedMenuItem.text().toLowerCase());
+          return _this.switchToSelectedUkNonUk();
         };
       })(this));
     };
@@ -162,11 +178,10 @@
       return window.open(encodedUri);
     };
 
-    PageManager.prototype.setupCsvDownload = function(ukNonUk) {
+    PageManager.prototype.setupCsvDownload = function() {
       return $('#download').unbind('click').click((function(_this) {
         return function() {
-          console.log(ukNonUk, _this);
-          if (ukNonUk === 'uk') {
+          if (_this.ukNonUk() === 'uk') {
             return _this.downloadConstituencyCsv();
           } else {
             return _this.downloadCountryCsv();
@@ -175,17 +190,23 @@
       })(this));
     };
 
-    toggleSubtitleVisibility = function(nowCurrent) {
-      var hidingClass, showingClass;
+    PageManager.prototype.toggleSubtitleVisibility = function() {
+      var hidingClass, nowCurrent, showingClass;
+      nowCurrent = this.ukNonUk();
       showingClass = "." + nowCurrent;
       hidingClass = nowCurrent === 'uk' ? '.non-uk' : '.uk';
       $(showingClass).removeClass('hidden');
       return $(hidingClass).addClass('hidden');
     };
 
-    PageManager.prototype.switchTo = function(ukNonUk) {
-      toggleSubtitleVisibility(ukNonUk);
-      return this.setupCsvDownload(ukNonUk);
+    PageManager.prototype.ukNonUk = function() {
+      return $('.uk-non-uk li.disabled a').text().toLowerCase();
+    };
+
+    PageManager.prototype.switchToSelectedUkNonUk = function() {
+      this.toggleSubtitleVisibility();
+      this.setupCsvDownload();
+      return this.createOrReplaceChart();
     };
 
     return PageManager;

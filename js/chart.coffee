@@ -4,11 +4,7 @@ String::capitalizeFirstLetter = ->
 class @Chart
   margin = { top: 40, right: 70, bottom: 150, left: 70 }
 
-  constructor: (@petitionData, @options = { toShow: 25 }) ->
-    slicedData = @petitionData.signaturesByCountryDescendingCount({filter: 'GB', top: @options.toShow})
-    @xAxisLabels = slicedData.map (country) -> country.name
-    @data = slicedData.map (country) -> country.signature_count
-
+  constructor: (@data, @xAxisLabels, @options = { toShow: 25 }) ->
     d3.select(window).on('resize', @resize)
 
   resize: () =>
@@ -28,7 +24,7 @@ class @Chart
     @x ||= d3.scale.ordinal().domain(@xAxisLabels)
     @x.rangeBands([0, @width])
 
-    @y ||= d3.scale.linear().domain([0, @petitionData.maxCountryFrequency()])
+    @y ||= d3.scale.linear().domain([0, d3.max(@data)])
     @y.range([@height, 0])
 
   xAxisGroup: () =>

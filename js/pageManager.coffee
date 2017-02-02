@@ -1,10 +1,19 @@
 class @PageManager
   constructor: (@petitionUrl) ->
 
-  createOrReplaceChart: (toShow) =>
+  createOrReplaceChart: () =>
     if window._chart
       window._chart.replace()
-    window._chart = new Chart(@petitionData, { filter: 'GB', toShow: toShow })
+
+    if @ukNonUk() == 'uk'
+      slicedData = @petitionData.signaturesByConstituencyDescendingCount({ top: currentToShowValue() })
+    else
+      slicedData = @petitionData.signaturesByCountryDescendingCount({ filter: 'GB', top: currentToShowValue() })
+
+    xAxisLabels = slicedData.map (area) -> area.name
+    data = slicedData.map (area) -> area.signature_count
+
+    window._chart = new Chart(data, xAxisLabels, { toShow: currentToShowValue() })
     window._chart.draw()
 
   setup: =>
@@ -25,11 +34,14 @@ class @PageManager
 
         # Country-specific elements
         @setupNonUkSummary()
-        @setupCsvDownload('non-uk')
-        @createOrReplaceChart(currentToShowValue())
+        @setupCsvDownload()
 
         # Constituency-specific elements
         @setupUkSummary()
+
+        # Chart
+        @createOrReplaceChart(currentToShowValue())
+
 
   setupSubtitle: =>
     $('.subtitle .n')
@@ -66,7 +78,7 @@ class @PageManager
       selectedMenuItem.parent('li').addClass('disabled')
       $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
 
-      @switchTo(selectedMenuItem.text().toLowerCase())
+      @switchToSelectedUkNonUk()
 
   setupToShowButtons: =>
     $('button.to-show').click (e) =>
@@ -111,20 +123,26 @@ class @PageManager
     encodedUri = encodeURI(csv)
     window.open(encodedUri)
 
-  setupCsvDownload: (ukNonUk) =>
+  setupCsvDownload: () =>
     $('#download').unbind('click').click =>
-      console.log(ukNonUk, this)
-      if ukNonUk == 'uk'
+      if @ukNonUk() == 'uk'
         @downloadConstituencyCsv()
       else
         @downloadCountryCsv()
 
-  toggleSubtitleVisibility = (nowCurrent) ->
+  toggleSubtitleVisibility: () ->
+    nowCurrent = @ukNonUk()
+
     showingClass = ".#{nowCurrent}"
     hidingClass = if nowCurrent == 'uk' then '.non-uk' else '.uk'
     $(showingClass).removeClass('hidden')
     $(hidingClass).addClass('hidden')
 
-  switchTo: (ukNonUk) =>
-    toggleSubtitleVisibility(ukNonUk)
-    @setupCsvDownload(ukNonUk)
+  ukNonUk: ->
+    # The one that's disabled is the one already selected
+    $('.uk-non-uk li.disabled a').text().toLowerCase()
+
+  switchToSelectedUkNonUk: () =>
+    @toggleSubtitleVisibility()
+    @setupCsvDownload()
+    @createOrReplaceChart()

@@ -16,9 +16,9 @@
       left: 70
     };
 
-    function Chart(petitionData, options) {
-      var slicedData;
-      this.petitionData = petitionData;
+    function Chart(data, xAxisLabels, options) {
+      this.data = data;
+      this.xAxisLabels = xAxisLabels;
       this.options = options != null ? options : {
         toShow: 25
       };
@@ -33,16 +33,6 @@
       this.xAxisGroup = bind(this.xAxisGroup, this);
       this.recalculateScales = bind(this.recalculateScales, this);
       this.resize = bind(this.resize, this);
-      slicedData = this.petitionData.signaturesByCountryDescendingCount({
-        filter: 'GB',
-        top: this.options.toShow
-      });
-      this.xAxisLabels = slicedData.map(function(country) {
-        return country.name;
-      });
-      this.data = slicedData.map(function(country) {
-        return country.signature_count;
-      });
       d3.select(window).on('resize', this.resize);
     }
 
@@ -63,7 +53,7 @@
       this.barWidth = this.width / this.data.length;
       this.x || (this.x = d3.scale.ordinal().domain(this.xAxisLabels));
       this.x.rangeBands([0, this.width]);
-      this.y || (this.y = d3.scale.linear().domain([0, this.petitionData.maxCountryFrequency()]));
+      this.y || (this.y = d3.scale.linear().domain([0, d3.max(this.data)]));
       return this.y.range([this.height, 0]);
     };
 
