@@ -1,5 +1,5 @@
 class @PageManager
-  @createOrReplaceChart = (petitionData, toShow) ->
+  createOrReplaceChart = (petitionData, toShow) ->
     if window._chart
       window._chart.replace()
     window._chart = new Chart(petitionData, { filter: 'GB', toShow: toShow })
@@ -14,61 +14,65 @@ class @PageManager
       success: (petitionJson) ->
         petitionData = new PetitionData(petitionJson)
         # Common elements
-        PageManager.setupTitle(petitionData)
-        PageManager.setupSubtitle(petitionData)
-        PageManager.setupProgressBar(petitionData)
-        PageManager.setupToShowButtons()
-        PageManager.setupUkNonUkButtons()
+        setupTitle(petitionData)
+        setupSubtitle(petitionData)
+        setupProgressBar(petitionData)
+        setupToShowButtons()
+        setupUkNonUkButtons()
 
         # Country-specific elements
-        PageManager.setupNonUkSummary(petitionData)
-        PageManager.setupCsvDownload(petitionData)
-        PageManager.createOrReplaceChart(petitionData, PageManager.currentToShowValue())
+        setupNonUkSummary(petitionData)
+        setupCsvDownload(petitionData)
+        createOrReplaceChart(petitionData, currentToShowValue())
 
-        # TODO: Constituency-specific elements
+        # Constituency-specific elements
+        setupUkSummary(petitionData)
 
-  @setupSubtitle: (petitionData) ->
+  setupSubtitle = (petitionData) ->
     $('.subtitle .n')
       .text(petitionData.stats().total.toLocaleString('en-GB', {minimumFractionDigits: 0}))
 
-  @setupProgressBar: (petitionData) ->
+  setupProgressBar = (petitionData) ->
     stats = petitionData.stats()
     wereAre = if petitionData.state() == 'open' then 'are' else 'were'
 
-    $('.progress-bar.uk').attr('style', "width: #{stats.percentage_uk.toFixed(1)}%")
-    $('.progress-bar.uk span').text(
+    $('.progress-bar-uk').attr('style', "width: #{stats.percentage_uk.toFixed(1)}%")
+    $('.progress-bar-uk span').text(
       "#{stats.uk_total.toLocaleString(
         'en-GB', {minimumFractionDigits: 0})} (#{stats.percentage_uk.toFixed(1)}%) #{wereAre} from the UK.")
-    $('.progress-bar.non-uk').attr('style', "width: #{stats.percentage_international.toFixed(1)}%")
-    $('.progress-bar.non-uk span').text("#{stats.percentage_international.toFixed(1)}% non-UK")
     $('.were-are').text(wereAre)
 
-  @setupNonUkSummary: (petitionData) ->
+  setupNonUkSummary = (petitionData) ->
     stats = petitionData.stats()
     $('.non-uk-summary .country-count').text(stats.non_uk_country_count)
-    $('.non-uk-summary .slice-n').text(PageManager.currentToShowValue())
+    $('.non-uk-summary .slice-n').text(currentToShowValue())
     $('.non-uk-summary .n').text("#{stats.international_total.toLocaleString('en-GB', {minimumFractionDigits: 0})}")
     $('.non-uk-summary .percent').text("#{stats.percentage_international.toFixed(1)}%")
 
-  @currentToShowValue: () ->
+  setupUkSummary = (petitionData) ->
+    stats = petitionData.stats()
+    $('.uk .constituency-count').text(stats.uk_constituency_count)
+
+  currentToShowValue = ->
     parseInt($('button.to-show.active').attr('data-to-show'))
 
-  @setupUkNonUkButtons: () ->
+  setupUkNonUkButtons = ->
     $('.uk-non-uk .dropdown-menu a').click (e) ->
       $('.uk-non-uk .dropdown-menu li').removeClass('disabled')
       selectedMenuItem = $(e.currentTarget)
       selectedMenuItem.parent('li').addClass('disabled')
       $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
-      PageManager.switchTo(selectedMenuItem.text())
 
-  @setupToShowButtons: () ->
+      switchTo(selectedMenuItem.text())
+
+  setupToShowButtons = ->
     $('button.to-show').click (e) ->
       $('button.to-show').removeClass('active')
       toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'))
-      PageManager.createOrReplaceChart(window._chart.petitionData, toShow)
-      PageManager.setupNonUkSummary(window._chart.petitionData)
+      createOrReplaceChart(window._chart.petitionData, toShow)
+      setupNonUkSummary(window._chart.petitionData)
 
-  @setupTitle: (petitionData) ->
+  setupTitle = (petitionData) ->
     $('.petition-title').text('')
     $('.petition-title a').remove()
     $('.petition-title').append('<a />')
@@ -92,9 +96,16 @@ class @PageManager
     encodedUri = encodeURI(csv)
     window.open(encodedUri)
 
-  @setupCsvDownload: (petitionData) ->
+  setupCsvDownload = (petitionData) ->
     $('#download').unbind('click').click ->
       PageManager.download(petitionData)
 
-  @switchTo: (ukNonUk) ->
+  toggleSubtitleVisibility = (nowCurrent) ->
+    showingClass = ".#{nowCurrent.toLowerCase()}"
+    hidingClass = if nowCurrent == 'UK' then '.non-uk' else '.uk'
+    $(showingClass).removeClass('hidden')
+    $(hidingClass).addClass('hidden')
+
+  switchTo = (ukNonUk) ->
+    toggleSubtitleVisibility(ukNonUk)
     console.log("switching to #{ukNonUk}")

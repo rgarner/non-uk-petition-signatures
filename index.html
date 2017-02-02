@@ -52,13 +52,17 @@
 <h2 class="subtitle">Of <span class="n">n</span> signatures,</h2>
 
 <div class="progress">
-    <div class="progress-bar uk" style="width: 50.0%">
+    <div class="progress-bar progress-bar-uk" style="width: 50.0%">
         <span>50% <span class="were-are">were</span> from the UK</span>
     </div>
 </div>
 
 <h3 class="non-uk-summary">
-    The remaining <span class="n">n</span> (<span class="percent">n%</span>) of
+    <span class="hidden uk">These</span>
+    <span class="non-uk">
+        The remaining <span class="n">n</span> (<span class="percent">n%</span>) of
+    </span>
+
     <span class="uk-non-uk dropdown">
         <a href="#" id="drpUkNonUk" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
             <span class="inline-label">non-UK</span> <span class="caret"></span></a>
@@ -67,7 +71,11 @@
             <li><a href="#">UK</a></li>
         </ul>
     </span>
-    signatures <span class="were-are">were</span> from <span class="country-count">n</span> countries.
+    signatures <span class="were-are">were</span> from
+    <span class="non-uk country-count">n</span>
+    <span class="non-uk">countries.</span>
+    <span class="hidden uk"><span class="constituency-count">n</span> constituencies.</span>
+
     These are the
     <span class="text-nowrap">
         top
