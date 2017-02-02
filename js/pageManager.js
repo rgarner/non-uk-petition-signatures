@@ -114,8 +114,8 @@
           var toShow;
           $('button.to-show').removeClass('active');
           toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'));
-          createOrReplaceChart(_this.petitionData, toShow);
-          return setupNonUkSummary(_this.petitionData);
+          _this.createOrReplaceChart(toShow);
+          return _this.setupNonUkSummary();
         };
       })(this));
     };

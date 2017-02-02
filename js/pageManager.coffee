@@ -72,8 +72,8 @@ class @PageManager
     $('button.to-show').click (e) =>
       $('button.to-show').removeClass('active')
       toShow = parseInt($(e.currentTarget).addClass('active').attr('data-to-show'))
-      createOrReplaceChart(@petitionData, toShow)
-      setupNonUkSummary(@petitionData)
+      @createOrReplaceChart(toShow)
+      @setupNonUkSummary()
 
   setupTitle: =>
     $('.petition-title').text('')
