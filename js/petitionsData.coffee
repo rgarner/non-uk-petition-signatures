@@ -26,5 +26,6 @@ jQuery ->
         console.log("Couldn't get petitions JSON - #{textStatus}: #{errorThrown}")
       success: (petitionsJson, _textStatus, _jqXHR) ->
         setupDropdown(petitionsJson, (url) ->
-          PageManager.setup(url))
+          window._pageManager = new PageManager(url)
+          window._pageManager.setup())
 
