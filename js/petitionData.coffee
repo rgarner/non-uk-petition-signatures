@@ -1,5 +1,6 @@
 class @PetitionData
   TOP = 25
+  ALL = 1000
   FILTER = 'GB'
 
   constructor: (@petitionJson) ->
@@ -17,8 +18,10 @@ class @PetitionData
     @_signaturesByCountry ||= @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != options.filter
 
-  signatureCountForName: (name) ->
-    @signaturesByCountry().find((c) -> c.name == name).signature_count
+  signaturesByConstituencyDescendingCount: (options = { top: ALL } ) =>
+    descending = @petitionJson.data.attributes.signatures_by_constituency.sort (prev, current) ->
+      if current.signature_count > prev.signature_count then 1 else -1
+    descending[0..options.top - 1]
 
   uk: () =>
     countries = @petitionJson.data.attributes.signatures_by_country
@@ -27,12 +30,14 @@ class @PetitionData
   stats: () =>
     total = @petitionJson.data.attributes.signature_count
     non_uk_country_count = @signaturesByCountry().length
+    uk_constituency_count = @petitionJson.data.attributes.signatures_by_constituency.length
     uk_total = @uk().signature_count
     accumulator = (total, c) -> total += c.signature_count
     international_total = @signaturesByCountry().reduce(accumulator, 0)
     {
       total: total
       non_uk_country_count: non_uk_country_count
+      uk_constituency_count: uk_constituency_count
       uk_total: uk_total
       international_total: international_total
       percentage_uk: (uk_total / total) * 100

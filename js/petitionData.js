@@ -3,9 +3,11 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.PetitionData = (function() {
-    var FILTER, TOP;
+    var ALL, FILTER, TOP;
 
     TOP = 25;
+
+    ALL = 1000;
 
     FILTER = 'GB';
 
@@ -15,6 +17,7 @@
       this.signaturesByCountryDescendingCount = bind(this.signaturesByCountryDescendingCount, this);
       this.stats = bind(this.stats, this);
       this.uk = bind(this.uk, this);
+      this.signaturesByConstituencyDescendingCount = bind(this.signaturesByConstituencyDescendingCount, this);
       this.signaturesByCountry = bind(this.signaturesByCountry, this);
       this.state = bind(this.state, this);
       this.url = bind(this.url, this);
@@ -44,10 +47,21 @@
       }));
     };
 
-    PetitionData.prototype.signatureCountForName = function(name) {
-      return this.signaturesByCountry().find(function(c) {
-        return c.name === name;
-      }).signature_count;
+    PetitionData.prototype.signaturesByConstituencyDescendingCount = function(options) {
+      var descending;
+      if (options == null) {
+        options = {
+          top: ALL
+        };
+      }
+      descending = this.petitionJson.data.attributes.signatures_by_constituency.sort(function(prev, current) {
+        if (current.signature_count > prev.signature_count) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+      return descending.slice(0, +(options.top - 1) + 1 || 9e9);
     };
 
     PetitionData.prototype.uk = function() {
@@ -67,9 +81,10 @@
     };
 
     PetitionData.prototype.stats = function() {
-      var accumulator, international_total, non_uk_country_count, total, uk_total;
+      var accumulator, international_total, non_uk_country_count, total, uk_constituency_count, uk_total;
       total = this.petitionJson.data.attributes.signature_count;
       non_uk_country_count = this.signaturesByCountry().length;
+      uk_constituency_count = this.petitionJson.data.attributes.signatures_by_constituency.length;
       uk_total = this.uk().signature_count;
       accumulator = function(total, c) {
         return total += c.signature_count;
@@ -78,6 +93,7 @@
       return {
         total: total,
         non_uk_country_count: non_uk_country_count,
+        uk_constituency_count: uk_constituency_count,
         uk_total: uk_total,
         international_total: international_total,
         percentage_uk: (uk_total / total) * 100,

@@ -30,7 +30,8 @@
         },
         success: function(petitionsJson, _textStatus, _jqXHR) {
           return setupDropdown(petitionsJson, function(url) {
-            return PageManager.setup(url);
+            window._pageManager = new PageManager(url);
+            return window._pageManager.setup();
           });
         }
       });
