@@ -6,6 +6,10 @@ rect.bar {
     fill: orange;
 }
 
+/*.petitions.dropdown-menu .input-group {*/
+    /*margin: 0 20px;*/
+/*}*/
+
 .petition-title {
     clear: left;
 }
@@ -54,4 +58,5 @@ h1 .closed {
 h3.non-uk-summary {
     line-height: 1.4em;
 }
+
 

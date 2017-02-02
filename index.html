@@ -20,8 +20,10 @@
           content="http://zephyros-systems.co.uk/petition-signatures-outside-uk/images/site-preview.png"/>
 
     <title>Petition signatures by constituency or country</title>
-    <script src="js/jQuery.js" charset="utf-8"></script>
-    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/jquery.js" charset="utf-8"></script>
+    <script src="js/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/navigo.min.js" charset="utf-8"></script>
+    <script src="js/petitionUrl.js" charset="utf-8"></script>
     <script src="js/petitionData.js" charset="utf-8"></script>
     <script src="js/chart.js" charset="utf-8"></script>
     <script src="js/pageManager.js" charset="utf-8"></script>
@@ -39,8 +41,20 @@
 
         <ul class="nav navbar-nav">
             <li class="dropdown">
-                <a href="#" id="drpPetitions" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Select a petition <span class="caret"></span></a>
-                <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" ></ul>
+                <a href="#" id="drpPetitions" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+                    Select a petition
+                    <span class="caret"></span>
+                </a>
+                <ul class="petitions dropdown-menu" aria-labelledby="drpPetitions" >
+                    <!--<li>-->
+                        <!--<div class="input-group">-->
+                            <!--<input type="text" id="petitionIdOrUrl" class="form-control" placeholder="Petition ID or URL">-->
+                            <!--<span class="input-group-btn">-->
+                               <!--<button id="navigateToPetition" class="btn btn-default" type="button">Go!</button>-->
+                            <!--</span>-->
+                        <!--</div>-->
+                    <!--</li>-->
+                </ul>
             </li>
         </ul>
     </nav>
@@ -48,6 +62,7 @@
 
 <article>
 
+<div class="everything-is-fine">
 <h1 class="petition-title">Loading petition...</h1>
 <h2 class="subtitle">Of <span class="n">n</span> signatures,</h2>
 
@@ -67,8 +82,8 @@
         <a href="#" id="drpUkNonUk" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
             <span class="inline-label">non-UK</span> <span class="caret"></span></a>
         <ul class="dropdown-menu" aria-labelledby="drpUkNonUk" >
-            <li class="disabled"><a href="#">non-UK</a></li>
-            <li><a href="#">UK</a></li>
+            <li class="menu-non-uk disabled"><a href="#">non-UK</a></li>
+            <li class="menu-uk"><a href="#">UK</a></li>
         </ul>
     </span>
     signatures <span class="were-are">were</span> from
@@ -98,6 +113,7 @@
     <svg id="chart"></svg>
 </div>
 
+</div>
 </article>
 
 <footer class="navbar">

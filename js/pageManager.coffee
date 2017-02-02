@@ -1,5 +1,6 @@
 class @PageManager
-  constructor: (@petitionUrl) ->
+  constructor: (@router) ->
+    @arrivedDirectlyAtAPetition = false
 
   createOrReplaceChart: () =>
     if window._chart
@@ -16,9 +17,19 @@ class @PageManager
     window._chart = new Chart(data, xAxisLabels, { toShow: currentToShowValue() })
     window._chart.draw()
 
-  setup: =>
+  navigateToPetition: (petitionIdOrUrl, ukOrNonUk = 'non-uk') =>
+    url = new PetitionUrl(petitionIdOrUrl)
+
+    console.log("going to #{url}")
+    @setup(url)
+    @setUkOrNonUk(ukOrNonUk)
+
+    @arrivedDirectlyAtAPetition = true
+
+  setup: (petitionUrl) =>
+    @petitionUrl = petitionUrl
     $.ajax
-      url: @petitionUrl
+      url: @petitionUrl.toString()
       dataType: "json"
       error: (jqXHR, textStatus, errorThrown) ->
         console.log("Couldn't get petition JSON - #{textStatus}: #{errorThrown}")
@@ -30,7 +41,7 @@ class @PageManager
         @setupSubtitle()
         @setupProgressBar()
         @setupToShowButtons()
-        @setupUkNonUkButtons()
+        @setupUkNonUkLinks()
 
         # Country-specific elements
         @setupNonUkSummary()
@@ -41,7 +52,6 @@ class @PageManager
 
         # Chart
         @createOrReplaceChart(currentToShowValue())
-
 
   setupSubtitle: =>
     $('.subtitle .n')
@@ -71,14 +81,9 @@ class @PageManager
   currentToShowValue = ->
     parseInt($('button.to-show.active').attr('data-to-show'))
 
-  setupUkNonUkButtons: =>
-    $('.uk-non-uk .dropdown-menu a').click (e) =>
-      $('.uk-non-uk .dropdown-menu li').removeClass('disabled')
-      selectedMenuItem = $(e.currentTarget)
-      selectedMenuItem.parent('li').addClass('disabled')
-      $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
-
-      @switchToSelectedUkNonUk()
+  setupUkNonUkLinks: =>
+    $('.menu-non-uk a').attr('href', @petitionUrl.ourUrl())
+    $('.menu-uk a').attr('href', "#{@petitionUrl.ourUrl()}/uk")
 
   setupToShowButtons: =>
     $('button.to-show').click (e) =>
@@ -138,11 +143,18 @@ class @PageManager
     $(showingClass).removeClass('hidden')
     $(hidingClass).addClass('hidden')
 
+  oppositeUkOrNonUk = (ukOrNonUk) ->
+    if ukOrNonUk == 'uk' then 'non-uk' else 'uk'
+
   ukNonUk: ->
     # The one that's disabled is the one already selected
     $('.uk-non-uk li.disabled a').text().toLowerCase()
 
-  switchToSelectedUkNonUk: () =>
+  setUkOrNonUk: (active) ->
+    activeText = $("li.menu-#{active}").addClass('disabled').text()
+    $("li.menu-#{oppositeUkOrNonUk(active)}").removeClass('disabled')
+    $('.uk-non-uk .inline-label').text(activeText)
+
     @toggleSubtitleVisibility()
     @setupCsvDownload()
     @createOrReplaceChart()
