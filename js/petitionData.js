@@ -61,9 +61,10 @@
     };
 
     PetitionData.prototype.stats = function() {
-      var accumulator, international_total, non_uk_country_count, total, uk_total;
+      var accumulator, international_total, non_uk_country_count, total, uk_constituency_count, uk_total;
       total = this.petitionJson.data.attributes.signature_count;
       non_uk_country_count = this.signaturesByCountry().length;
+      uk_constituency_count = this.petitionJson.data.attributes.signatures_by_constituency.length;
       uk_total = this.uk().signature_count;
       accumulator = function(total, c) {
         return total += c.signature_count;
@@ -72,6 +73,7 @@
       return {
         total: total,
         non_uk_country_count: non_uk_country_count,
+        uk_constituency_count: uk_constituency_count,
         uk_total: uk_total,
         international_total: international_total,
         percentage_uk: (uk_total / total) * 100,
