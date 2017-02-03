@@ -38,6 +38,7 @@ class @PageManager
         @setupUkNonUkLinks()
         @setUkOrNonUk(ukOrNonUk)
         @toggleSubtitleVisibility()
+        @togglePetitionsMenuUk()
 
         # Country-specific elements
         @setupNonUkSummary()
@@ -140,6 +141,15 @@ class @PageManager
     hidingClass = if nowCurrent == 'uk' then '.non-uk' else '.uk'
     $(showingClass).removeClass('hidden')
     $(hidingClass).addClass('hidden')
+
+  togglePetitionsMenuUk: () =>
+    petitionsLinks = $('.petitions.dropdown-menu li a')
+    if @ukNonUk() == 'uk'
+      petitionsLinks.attr('href', ->
+        $(this).attr('href') + '/uk' unless $(this).attr('href').endsWith('/uk')
+      )
+    else
+      petitionsLinks.attr('href', -> $(this).attr('href').replace('/uk',''))
 
   oppositeUkOrNonUk = (ukOrNonUk) ->
     if ukOrNonUk == 'uk' then 'non-uk' else 'uk'

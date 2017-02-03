@@ -7,6 +7,7 @@
 
     function PageManager(router) {
       this.router = router;
+      this.togglePetitionsMenuUk = bind(this.togglePetitionsMenuUk, this);
       this.setupCsvDownload = bind(this.setupCsvDownload, this);
       this.downloadConstituencyCsv = bind(this.downloadConstituencyCsv, this);
       this.downloadCountryCsv = bind(this.downloadCountryCsv, this);
@@ -71,6 +72,7 @@
             _this.setupUkNonUkLinks();
             _this.setUkOrNonUk(ukOrNonUk);
             _this.toggleSubtitleVisibility();
+            _this.togglePetitionsMenuUk();
             _this.setupNonUkSummary();
             _this.setupCsvDownload();
             _this.setupUkSummary();
@@ -197,6 +199,22 @@
       hidingClass = nowCurrent === 'uk' ? '.non-uk' : '.uk';
       $(showingClass).removeClass('hidden');
       return $(hidingClass).addClass('hidden');
+    };
+
+    PageManager.prototype.togglePetitionsMenuUk = function() {
+      var petitionsLinks;
+      petitionsLinks = $('.petitions.dropdown-menu li a');
+      if (this.ukNonUk() === 'uk') {
+        return petitionsLinks.attr('href', function() {
+          if (!$(this).attr('href').endsWith('/uk')) {
+            return $(this).attr('href') + '/uk';
+          }
+        });
+      } else {
+        return petitionsLinks.attr('href', function() {
+          return $(this).attr('href').replace('/uk', '');
+        });
+      }
     };
 
     oppositeUkOrNonUk = function(ukOrNonUk) {
