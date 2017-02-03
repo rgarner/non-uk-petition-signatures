@@ -17,7 +17,6 @@
       this.setupNonUkSummary = bind(this.setupNonUkSummary, this);
       this.setupProgressBar = bind(this.setupProgressBar, this);
       this.setupSubtitle = bind(this.setupSubtitle, this);
-      this.setup = bind(this.setup, this);
       this.navigateToPetition = bind(this.navigateToPetition, this);
       this.createOrReplaceChart = bind(this.createOrReplaceChart, this);
       this.arrivedDirectlyAtAPetition = false;
@@ -51,20 +50,12 @@
     };
 
     PageManager.prototype.navigateToPetition = function(petitionIdOrUrl, ukOrNonUk) {
-      var url;
       if (ukOrNonUk == null) {
         ukOrNonUk = 'non-uk';
       }
-      url = new PetitionUrl(petitionIdOrUrl);
-      console.log("going to " + url);
-      this.setup(url);
-      this.setUkOrNonUk(ukOrNonUk);
-      return this.arrivedDirectlyAtAPetition = true;
-    };
-
-    PageManager.prototype.setup = function(petitionUrl) {
-      this.petitionUrl = petitionUrl;
-      return $.ajax({
+      this.petitionUrl = new PetitionUrl(petitionIdOrUrl);
+      console.log("going to " + (this.petitionUrl.toString()));
+      $.ajax({
         url: this.petitionUrl.toString(),
         dataType: "json",
         error: function(jqXHR, textStatus, errorThrown) {
@@ -78,6 +69,8 @@
             _this.setupProgressBar();
             _this.setupToShowButtons();
             _this.setupUkNonUkLinks();
+            _this.setUkOrNonUk(ukOrNonUk);
+            _this.toggleSubtitleVisibility();
             _this.setupNonUkSummary();
             _this.setupCsvDownload();
             _this.setupUkSummary();
@@ -85,6 +78,7 @@
           };
         })(this)
       });
+      return this.arrivedDirectlyAtAPetition = true;
     };
 
     PageManager.prototype.setupSubtitle = function() {
@@ -221,10 +215,7 @@
       var activeText;
       activeText = $("li.menu-" + active).addClass('disabled').text();
       $("li.menu-" + (oppositeUkOrNonUk(active))).removeClass('disabled');
-      $('.uk-non-uk .inline-label').text(activeText);
-      this.toggleSubtitleVisibility();
-      this.setupCsvDownload();
-      return this.createOrReplaceChart();
+      return $('.uk-non-uk .inline-label').text(activeText);
     };
 
     return PageManager;

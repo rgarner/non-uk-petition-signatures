@@ -18,16 +18,10 @@ class @PageManager
     window._chart.draw()
 
   navigateToPetition: (petitionIdOrUrl, ukOrNonUk = 'non-uk') =>
-    url = new PetitionUrl(petitionIdOrUrl)
+    @petitionUrl = new PetitionUrl(petitionIdOrUrl)
 
-    console.log("going to #{url}")
-    @setup(url)
-    @setUkOrNonUk(ukOrNonUk)
+    console.log("going to #{@petitionUrl.toString()}")
 
-    @arrivedDirectlyAtAPetition = true
-
-  setup: (petitionUrl) =>
-    @petitionUrl = petitionUrl
     $.ajax
       url: @petitionUrl.toString()
       dataType: "json"
@@ -42,6 +36,8 @@ class @PageManager
         @setupProgressBar()
         @setupToShowButtons()
         @setupUkNonUkLinks()
+        @setUkOrNonUk(ukOrNonUk)
+        @toggleSubtitleVisibility()
 
         # Country-specific elements
         @setupNonUkSummary()
@@ -52,6 +48,8 @@ class @PageManager
 
         # Chart
         @createOrReplaceChart(currentToShowValue())
+
+    @arrivedDirectlyAtAPetition = true
 
   setupSubtitle: =>
     $('.subtitle .n')
@@ -154,7 +152,3 @@ class @PageManager
     activeText = $("li.menu-#{active}").addClass('disabled').text()
     $("li.menu-#{oppositeUkOrNonUk(active)}").removeClass('disabled')
     $('.uk-non-uk .inline-label').text(activeText)
-
-    @toggleSubtitleVisibility()
-    @setupCsvDownload()
-    @createOrReplaceChart()
