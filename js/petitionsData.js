@@ -2,22 +2,21 @@
 (function() {
   var setupDropdown;
 
-  setupDropdown = function(petitionsJson, petitionUrlClicked) {
-    var appendPetitionItem, i, len, petition, petitionsMenu, ref;
-    petitionsMenu = $('.petitions.dropdown-menu').empty();
+  setupDropdown = function(petitionsJson) {
+    var appendPetitionItem, i, len, petition, petitionsMenu, ref, results;
+    petitionsMenu = $('.petitions.dropdown-menu');
     appendPetitionItem = function(petitionJson) {
-      return petitionsMenu.append("<li>\n  <a\n    data-petition-url='" + petitionJson.links.self + "'\n    href='#'>" + petitionJson.attributes.action + "</a>\n</li>");
+      var petitionUrl;
+      petitionUrl = new PetitionUrl(petitionJson.links.self);
+      return petitionsMenu.append("<li>\n  <a href='#/petitions/" + petitionUrl.petitionId + "'>" + petitionJson.attributes.action + "</a>\n</li>");
     };
     ref = petitionsJson.data;
+    results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       petition = ref[i];
-      appendPetitionItem(petition);
+      results.push(appendPetitionItem(petition));
     }
-    return petitionsMenu.find('li a').click(function(e) {
-      var url;
-      url = $(e.currentTarget).attr('data-petition-url');
-      return petitionUrlClicked(url);
-    });
+    return results;
   };
 
   jQuery(function() {
@@ -28,10 +27,9 @@
         error: function(jqXHR, textStatus, errorThrown) {
           return console.log("Couldn't get petitions JSON - " + textStatus + ": " + errorThrown);
         },
-        success: function(petitionsJson, _textStatus, _jqXHR) {
+        success: function(petitionsJson) {
           return setupDropdown(petitionsJson, function(url) {
-            window._pageManager = new PageManager(url);
-            return window._pageManager.setup();
+            return window._pageManager.setup(url);
           });
         }
       });

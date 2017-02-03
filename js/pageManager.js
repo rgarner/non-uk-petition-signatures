@@ -3,23 +3,24 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.PageManager = (function() {
-    var currentToShowValue;
+    var currentToShowValue, oppositeUkOrNonUk;
 
-    function PageManager(petitionUrl) {
-      this.petitionUrl = petitionUrl;
-      this.switchToSelectedUkNonUk = bind(this.switchToSelectedUkNonUk, this);
+    function PageManager(router) {
+      this.router = router;
+      this.togglePetitionsMenuUk = bind(this.togglePetitionsMenuUk, this);
       this.setupCsvDownload = bind(this.setupCsvDownload, this);
       this.downloadConstituencyCsv = bind(this.downloadConstituencyCsv, this);
       this.downloadCountryCsv = bind(this.downloadCountryCsv, this);
       this.setupTitle = bind(this.setupTitle, this);
       this.setupToShowButtons = bind(this.setupToShowButtons, this);
-      this.setupUkNonUkButtons = bind(this.setupUkNonUkButtons, this);
+      this.setupUkNonUkLinks = bind(this.setupUkNonUkLinks, this);
       this.setupUkSummary = bind(this.setupUkSummary, this);
       this.setupNonUkSummary = bind(this.setupNonUkSummary, this);
       this.setupProgressBar = bind(this.setupProgressBar, this);
       this.setupSubtitle = bind(this.setupSubtitle, this);
-      this.setup = bind(this.setup, this);
+      this.navigateToPetition = bind(this.navigateToPetition, this);
       this.createOrReplaceChart = bind(this.createOrReplaceChart, this);
+      this.arrivedDirectlyAtAPetition = false;
     }
 
     PageManager.prototype.createOrReplaceChart = function() {
@@ -49,9 +50,14 @@
       return window._chart.draw();
     };
 
-    PageManager.prototype.setup = function() {
-      return $.ajax({
-        url: this.petitionUrl,
+    PageManager.prototype.navigateToPetition = function(petitionIdOrUrl, ukOrNonUk) {
+      if (ukOrNonUk == null) {
+        ukOrNonUk = 'non-uk';
+      }
+      this.petitionUrl = new PetitionUrl(petitionIdOrUrl);
+      console.log("going to " + (this.petitionUrl.toString()));
+      $.ajax({
+        url: this.petitionUrl.toString(),
         dataType: "json",
         error: function(jqXHR, textStatus, errorThrown) {
           return console.log("Couldn't get petition JSON - " + textStatus + ": " + errorThrown);
@@ -63,7 +69,10 @@
             _this.setupSubtitle();
             _this.setupProgressBar();
             _this.setupToShowButtons();
-            _this.setupUkNonUkButtons();
+            _this.setupUkNonUkLinks();
+            _this.setUkOrNonUk(ukOrNonUk);
+            _this.toggleSubtitleVisibility();
+            _this.togglePetitionsMenuUk();
             _this.setupNonUkSummary();
             _this.setupCsvDownload();
             _this.setupUkSummary();
@@ -71,6 +80,7 @@
           };
         })(this)
       });
+      return this.arrivedDirectlyAtAPetition = true;
     };
 
     PageManager.prototype.setupSubtitle = function() {
@@ -111,17 +121,9 @@
       return parseInt($('button.to-show.active').attr('data-to-show'));
     };
 
-    PageManager.prototype.setupUkNonUkButtons = function() {
-      return $('.uk-non-uk .dropdown-menu a').click((function(_this) {
-        return function(e) {
-          var selectedMenuItem;
-          $('.uk-non-uk .dropdown-menu li').removeClass('disabled');
-          selectedMenuItem = $(e.currentTarget);
-          selectedMenuItem.parent('li').addClass('disabled');
-          $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
-          return _this.switchToSelectedUkNonUk();
-        };
-      })(this));
+    PageManager.prototype.setupUkNonUkLinks = function() {
+      $('.menu-non-uk a').attr('href', this.petitionUrl.ourUrl());
+      return $('.menu-uk a').attr('href', (this.petitionUrl.ourUrl()) + "/uk");
     };
 
     PageManager.prototype.setupToShowButtons = function() {
@@ -199,14 +201,39 @@
       return $(hidingClass).addClass('hidden');
     };
 
+    PageManager.prototype.togglePetitionsMenuUk = function() {
+      var petitionsLinks;
+      petitionsLinks = $('.petitions.dropdown-menu li a');
+      if (this.ukNonUk() === 'uk') {
+        return petitionsLinks.attr('href', function() {
+          if (!$(this).attr('href').endsWith('/uk')) {
+            return $(this).attr('href') + '/uk';
+          }
+        });
+      } else {
+        return petitionsLinks.attr('href', function() {
+          return $(this).attr('href').replace('/uk', '');
+        });
+      }
+    };
+
+    oppositeUkOrNonUk = function(ukOrNonUk) {
+      if (ukOrNonUk === 'uk') {
+        return 'non-uk';
+      } else {
+        return 'uk';
+      }
+    };
+
     PageManager.prototype.ukNonUk = function() {
       return $('.uk-non-uk li.disabled a').text().toLowerCase();
     };
 
-    PageManager.prototype.switchToSelectedUkNonUk = function() {
-      this.toggleSubtitleVisibility();
-      this.setupCsvDownload();
-      return this.createOrReplaceChart();
+    PageManager.prototype.setUkOrNonUk = function(active) {
+      var activeText;
+      activeText = $("li.menu-" + active).addClass('disabled').text();
+      $("li.menu-" + (oppositeUkOrNonUk(active))).removeClass('disabled');
+      return $('.uk-non-uk .inline-label').text(activeText);
     };
 
     return PageManager;
