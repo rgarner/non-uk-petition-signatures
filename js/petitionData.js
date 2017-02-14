@@ -18,6 +18,7 @@
       this.stats = bind(this.stats, this);
       this.uk = bind(this.uk, this);
       this.signaturesByConstituencyDescendingCount = bind(this.signaturesByConstituencyDescendingCount, this);
+      this.signaturesByConstituency = bind(this.signaturesByConstituency, this);
       this.signaturesByCountry = bind(this.signaturesByCountry, this);
       this.state = bind(this.state, this);
       this.url = bind(this.url, this);
@@ -47,6 +48,10 @@
       }));
     };
 
+    PetitionData.prototype.signaturesByConstituency = function() {
+      return this.petitionJson.data.attributes.signatures_by_constituency;
+    };
+
     PetitionData.prototype.signaturesByConstituencyDescendingCount = function(options) {
       var descending;
       if (options == null) {
@@ -54,7 +59,7 @@
           top: ALL
         };
       }
-      descending = this.petitionJson.data.attributes.signatures_by_constituency.sort(function(prev, current) {
+      descending = this.signaturesByConstituency().sort(function(prev, current) {
         if (current.signature_count > prev.signature_count) {
           return 1;
         } else {

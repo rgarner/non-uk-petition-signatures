@@ -44,10 +44,14 @@ h1 .closed {
     vertical-align: middle;
 }
 
-.progress span {
+.progress > .progress-bar > span {
     display: block;
     margin-top: 0.24em;
     font-size: 150%;
+}
+
+.progress-bar-pro-trump {
+    font-size: 50%;
 }
 
 .subtitle {
@@ -59,4 +63,21 @@ h3.non-uk-summary {
     line-height: 1.4em;
 }
 
+#bars {
+    width:100%;
+    margin: auto;
+}
 
+#bars td {
+    /*border: 1px solid red;*/
+    padding: 2px;
+}
+
+#bars .title {
+    text-align: right;
+    /*padding-right: 2em;*/
+}
+
+#bars thead .title {
+    width: 20%;
+}

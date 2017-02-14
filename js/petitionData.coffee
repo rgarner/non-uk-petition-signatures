@@ -18,8 +18,11 @@ class @PetitionData
     @_signaturesByCountry ||= @petitionJson.data.attributes.signatures_by_country.filter (country) ->
       country.code != options.filter
 
+  signaturesByConstituency: () =>
+    @petitionJson.data.attributes.signatures_by_constituency
+
   signaturesByConstituencyDescendingCount: (options = { top: ALL } ) =>
-    descending = @petitionJson.data.attributes.signatures_by_constituency.sort (prev, current) ->
+    descending = @signaturesByConstituency().sort (prev, current) ->
       if current.signature_count > prev.signature_count then 1 else -1
     descending[0..options.top - 1]
 

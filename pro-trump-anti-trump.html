@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/chart.css">
+
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="Pro-Trump/anti-Trump Signatures by constituency or country"/>
+    <meta name="twitter:description" content="See top pro/anti-Trump petition signatures made from outside the UK or by constituency"/>
+
+    <meta property="og:url"
+          content="http://zephyros-systems.co.uk/petition-signatures-outside-uk/pro-trump-anti-trump"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content="Pro-Trump/anti-Trump Signatures by constituency or country"/>
+    <meta property="og:description" content="See top pro/anti-Trump petition signatures made from outside the UK or by constituency"/>
+
+    <title>Petition signatures by constituency or country</title>
+    <script src="js/jquery.js" charset="utf-8"></script>
+    <script src="js/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/navigo.min.js" charset="utf-8"></script>
+    <script src="js/petitionUrl.js" charset="utf-8"></script>
+    <script src="js/petitionData.js" charset="utf-8"></script>
+    <script src="js/chart.js" charset="utf-8"></script>
+    <script src="js/proTrumpAntiTrumpManager.js" charset="utf-8"></script>
+    <script src="js/bootstrap.js" charset="utf-8"></script>
+    <script src="js/petitionsData.js" charset="utf-8"></script>
+    <script src="js/_initProTrumpAntiTrump.js" charset="utf-8"></script>
+</head>
+<body>
+<div class="container-fluid">
+<header>
+    <nav class="navbar navbar-inverse  navbar-collapse" role="navigation">
+        <span class="navbar-brand">
+            Pro/Anti-Trump sentiment
+        </span>
+    </nav>
+</header>
+
+<article>
+
+<div class="everything-is-fine">
+
+<h1 class="petition-title">Pro/Anti-Trump sentiment via petition signatures</h1>
+<h2 class="subtitle">Of <span class="n">n</span> signatures,</h2>
+
+<div class="progress">
+    <div class="progress-bar progress-bar-anti-trump" style="width: 70.0%">
+        <span>70% <span class="were-are">were</span> anti-Trump</span>
+    </div>
+    <div class="progress-bar progress-bar-warning progress-bar-pro-trump" role="progressbar" style="width:30%">
+        <span>30% <span class="were-are">were</span> pro-Trump</span>
+    </div>
+</div>
+
+<h3 class="non-uk-summary">
+    This is how the
+
+    <span class="uk-non-uk dropdown">
+        <a href="#" id="drpUkNonUk" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+            <span class="inline-label">UK</span> <span class="caret"></span></a>
+        <ul class="dropdown-menu" aria-labelledby="drpUkNonUk" >
+            <li class="menu-non-uk"><a href="#">non-UK</a></li>
+            <li class="menu-uk disabled"><a href="#">UK</a></li>
+        </ul>
+    </span>
+    signatures break down:
+</h3>
+
+
+<table id="bars" class="table table-condensed table-hover">
+    <thead>
+        <tr>
+            <th class="title" colwidth="30%">Constituency</th>
+            <th>Signature sentiment</th>
+        </tr>
+    </thead>
+    <tr>
+        <td class="title">Loading...</td>
+        <td class="bar">
+            <div class="progress-bar" style="width: 70.0%">
+                <span>70%</span>
+            </div>
+            <div class="progress-bar progress-bar-warning" role="progressbar" style="width:30%">
+                <span>30%</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="title">The ...</td>
+        <td class="bar">
+            <div class="progress-bar" style="width: 60.0%">
+                <span>60%</span>
+            </div>
+            <div class="progress-bar progress-bar-warning" role="progressbar" style="width:40%">
+                <span>40%</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="title">Petitions ...</td>
+        <td class="bar">
+            <div class="progress-bar" style="width: 55.0%">
+                <span>55%</span>
+            </div>
+            <div class="progress-bar progress-bar-warning" role="progressbar" style="width:45%">
+                <span>45%</span>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</div>
+</article>
+
+<footer class="navbar">
+    <p align="right">© Zephyros Systems Limited 2015</p>
+    <p align="right">Petition Data © Crown, published under <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government License</a></p>
+</footer>
+
+</div>
+</body>
+
+</html>
