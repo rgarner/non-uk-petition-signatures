@@ -196,7 +196,7 @@
     };
 
     drawBubbles = function(ukOrNonUk) {
-      var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, margin, nodes, processData, size, source, svg, textVisibilityThreshold, tip, vis;
+      var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, margin, nodes, processData, source, svg, textVisibilityThreshold, tip, vis;
       source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
       processData = function(source) {
         var children, sigMax, sigMin;
@@ -249,7 +249,6 @@
         return !d.children;
       });
       color = d3.scale.linear().domain([0, 100]).range(['#f0ad4e', '#337ab7']);
-      size = d3.scale.linear().domain([data.sigMin, data.sigMax]).range([0, 20]);
       vis = svg.selectAll('circle').data(nodes);
       tip = createTooltip(vis, svg);
       group = vis.enter().append('g').attr('class', 'area-group').on('mouseover', tip.show).on('mouseout', tip.hide);
@@ -282,7 +281,7 @@
         return "translate(" + d.x + "," + d.y + ")";
       });
       group.append('text').attr('transform', function(d) {
-        return "translate(" + d.x + "," + (d.y - size(d.size)) + ")";
+        return "translate(" + d.x + "," + d.y + ")";
       }).text(function(d) {
         if (d.size > textVisibilityThreshold) {
           return d.name;

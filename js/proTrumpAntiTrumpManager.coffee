@@ -216,7 +216,6 @@ class ProAntiTrumpView
     nodes = bubble.nodes(data).filter((d) -> !d.children )
 
     color = d3.scale.linear().domain([0,100]).range(['#f0ad4e', '#337ab7'])
-    size  = d3.scale.linear().domain([data.sigMin,data.sigMax]).range([0, 20])
 
     vis = svg.selectAll('circle').data(nodes)
 
@@ -258,7 +257,7 @@ class ProAntiTrumpView
       .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
 
     group.append('text')
-      .attr('transform', (d) -> "translate(#{d.x},#{d.y - size(d.size)})")
+      .attr('transform', (d) -> "translate(#{d.x},#{d.y})")
       .text((d) -> d.name if d.size > textVisibilityThreshold)
       .append('svg:tspan')
       .attr('x', 0)
