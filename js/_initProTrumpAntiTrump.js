@@ -7,11 +7,26 @@
     window._router = new Navigo(root, useHash);
     window._pageManager = new ProTrumpAntiTrumpManager();
     return window._router.on({
+      '/uk/bubble': function() {
+        return _pageManager.setup('uk', 'bubble');
+      },
+      '/uk/table': function() {
+        return _pageManager.setup('uk', 'table');
+      },
+      '/non-uk/bubble': function() {
+        return _pageManager.setup('non-uk', 'bubble');
+      },
+      '/non-uk/table': function() {
+        return _pageManager.setup('non-uk', 'table');
+      },
+      '/bubble': function() {
+        return window._router.navigate('/non-uk/bubble');
+      },
       '/uk': function() {
-        return _pageManager.setup('uk');
+        return window._router.navigate('/uk/table');
       },
       '/': function() {
-        return _pageManager.setup('non-uk');
+        return window._router.navigate('/non-uk/table');
       }
     }).resolve();
   });

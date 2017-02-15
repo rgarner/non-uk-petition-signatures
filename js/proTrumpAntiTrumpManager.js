@@ -137,15 +137,19 @@
   ProAntiTrumpView = (function() {
     var createTooltip, drawBubbles, drawTable, setupSummaryProgressBar, setupTitle;
 
-    function ProAntiTrumpView(duellingPetitions1) {
+    function ProAntiTrumpView(duellingPetitions1, ukOrNonUk1, tableOrBubble1) {
       this.duellingPetitions = duellingPetitions1;
+      this.ukOrNonUk = ukOrNonUk1;
+      this.tableOrBubble = tableOrBubble1;
       this.draw = bind(this.draw, this);
+      console.log('constructor', this.duellingPetitions, this.ukOrNonUk, this.tableOrBubble);
     }
 
-    drawTable = function(tableBody, ukOrNonUk) {
-      var area, i, len, results, sortedByTotalSignatures, source;
+    drawTable = function() {
+      var area, i, len, results, sortedByTotalSignatures, source, tableBody;
+      tableBody = $('#bars tbody');
       tableBody.find('tr').remove();
-      source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
+      source = this.ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
       sortedByTotalSignatures = source().sort(function(c1, c2) {
         var signature_counts;
         signature_counts = [c1, c2].map(function(area) {
@@ -195,9 +199,9 @@
       return tip;
     };
 
-    drawBubbles = function(ukOrNonUk) {
+    drawBubbles = function() {
       var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, margin, nodes, processData, source, svg, textVisibilityThreshold, tip, vis;
-      source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
+      source = this.ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
       processData = function(source) {
         var children, sigMax, sigMin;
         sigMax = 0;
@@ -226,10 +230,10 @@
         };
       };
       margin = {
-        top: 40,
-        right: 20,
-        bottom: 40,
-        left: 20
+        top: 0,
+        right: 40,
+        bottom: 0,
+        left: 40
       };
       diameter = window.innerWidth - margin.left - margin.right;
       graph = d3.select('#graph');
@@ -252,7 +256,7 @@
       vis = svg.selectAll('circle').data(nodes);
       tip = createTooltip(vis, svg);
       group = vis.enter().append('g').attr('class', 'area-group').on('mouseover', tip.show).on('mouseout', tip.hide);
-      textVisibilityThreshold = ukOrNonUk === 'uk' ? 7000 : 300;
+      textVisibilityThreshold = this.ukOrNonUk === 'uk' ? 7000 : 300;
       group.append('circle').attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       }).attr('r', function(d) {
@@ -298,10 +302,19 @@
       }).attr('class', 'click-capture').style('visibility', 'hidden');
     };
 
-    ProAntiTrumpView.prototype.draw = function(tableBody, ukOrNonUk) {
+    ProAntiTrumpView.prototype.draw = function() {
       setupTitle.call(this);
       setupSummaryProgressBar.call(this);
-      return drawBubbles.call(this, ukOrNonUk);
+      console.log(this.tableOrBubble);
+      if (this.tableOrBubble === 'table') {
+        $('#bars').removeClass('hidden');
+        $('#graph').addClass('hidden');
+        return drawTable.call(this);
+      } else {
+        $('#bars').addClass('hidden');
+        $('#graph').removeClass('hidden');
+        return drawBubbles.call(this);
+      }
     };
 
     return ProAntiTrumpView;
@@ -309,10 +322,12 @@
   })();
 
   this.ProTrumpAntiTrumpManager = (function() {
-    var oppositeUkOrNonUk;
+    var oppositeTableOrBubble, oppositeUkOrNonUk;
 
     function ProTrumpAntiTrumpManager() {
+      this.makeDropdownReflectTableOrBubble = bind(this.makeDropdownReflectTableOrBubble, this);
       this.makeDropdownReflectUkOrNonUk = bind(this.makeDropdownReflectUkOrNonUk, this);
+      this.setupTableBubbleLinks = bind(this.setupTableBubbleLinks, this);
       this.setupUkNonUkLinks = bind(this.setupUkNonUkLinks, this);
     }
 
@@ -324,34 +339,63 @@
       }
     };
 
-    ProTrumpAntiTrumpManager.prototype.ukNonUk = function() {
-      return $('.uk-non-uk li.disabled a').text().toLowerCase();
+    oppositeTableOrBubble = function(tableOrBubble) {
+      if (tableOrBubble === 'table') {
+        return 'bubble';
+      } else {
+        return 'table';
+      }
     };
 
     ProTrumpAntiTrumpManager.prototype.setupUkNonUkLinks = function() {
-      $('.menu-non-uk a').attr('href', '#/');
-      return $('.menu-uk a').attr('href', "#/uk");
+      $('.menu-non-uk a').attr('href', "#/non-uk/" + this.tableOrBubble);
+      return $('.menu-uk a').attr('href', "#/uk/" + this.tableOrBubble);
     };
 
-    ProTrumpAntiTrumpManager.prototype.makeDropdownReflectUkOrNonUk = function(active) {
-      var activeText;
+    ProTrumpAntiTrumpManager.prototype.setupTableBubbleLinks = function() {
+      $('.menu-table a').attr('href', "#/" + this.ukOrNonUk + "/table");
+      return $('.menu-bubble a').attr('href', "#/" + this.ukOrNonUk + "/bubble");
+    };
+
+    ProTrumpAntiTrumpManager.prototype.makeDropdownReflectUkOrNonUk = function() {
+      var active, activeText;
+      active = this.ukOrNonUk;
       activeText = $("li.menu-" + active).addClass('disabled').text();
       $("li.menu-" + (oppositeUkOrNonUk(active))).removeClass('disabled');
       return $('.uk-non-uk .inline-label').text(activeText);
     };
 
-    ProTrumpAntiTrumpManager.prototype.setup = function(ukOrNonUk) {
+    ProTrumpAntiTrumpManager.prototype.makeDropdownReflectTableOrBubble = function() {
+      var active, activeText;
+      active = this.tableOrBubble;
+      activeText = $("li.menu-" + active).addClass('disabled').text();
+      $("li.menu-" + (oppositeTableOrBubble(active))).removeClass('disabled');
+      return $('.graph-type .inline-label').text(activeText);
+    };
+
+    ProTrumpAntiTrumpManager.prototype.setup = function(ukOrNonUk, tableOrBubble) {
       var antiTrump, duellingPetitions, proTrump;
+      if (ukOrNonUk == null) {
+        ukOrNonUk = 'non-uk';
+      }
+      if (tableOrBubble == null) {
+        tableOrBubble = 'table';
+      }
+      this.ukOrNonUk = ukOrNonUk;
+      this.tableOrBubble = tableOrBubble;
+      console.log(this.ukOrNonUk, this.tableOrBubble);
       antiTrump = 'https://petition.parliament.uk/petitions/171928.json';
       proTrump = 'https://petition.parliament.uk/petitions/178844.json';
       duellingPetitions = new DuellingPetitions(antiTrump, proTrump);
       duellingPetitions.getBoth(function() {
         var view;
-        view = new ProAntiTrumpView(duellingPetitions);
-        return view.draw($('#bars tbody'), ukOrNonUk);
+        view = new ProAntiTrumpView(duellingPetitions, ukOrNonUk, tableOrBubble);
+        return view.draw();
       });
       this.setupUkNonUkLinks();
-      return this.makeDropdownReflectUkOrNonUk(ukOrNonUk);
+      this.setupTableBubbleLinks();
+      this.makeDropdownReflectUkOrNonUk();
+      return this.makeDropdownReflectTableOrBubble();
     };
 
     return ProTrumpAntiTrumpManager;

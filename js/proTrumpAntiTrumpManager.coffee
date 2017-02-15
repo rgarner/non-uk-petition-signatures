@@ -95,12 +95,14 @@ class DuellingPetitions
     )
 
 class ProAntiTrumpView
-  constructor: (@duellingPetitions) ->
+  constructor: (@duellingPetitions, @ukOrNonUk, @tableOrBubble) ->
+    console.log 'constructor', @duellingPetitions, @ukOrNonUk, @tableOrBubble
 
-  drawTable = (tableBody, ukOrNonUk) ->
+  drawTable = () ->
+    tableBody = $('#bars tbody')
     tableBody.find('tr').remove()
 
-    source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
+    source = if @ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
                                   else @duellingPetitions.byCountry
 
     sortedByTotalSignatures = source().sort(
@@ -170,8 +172,8 @@ class ProAntiTrumpView
     svg.call(tip)
     tip
 
-  drawBubbles = (ukOrNonUk) ->
-    source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
+  drawBubbles = () ->
+    source = if @ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
                                   else @duellingPetitions.byCountry
 
     processData = (source) ->
@@ -197,7 +199,7 @@ class ProAntiTrumpView
         children: children
       }
 
-    margin = { top: 40, right: 20, bottom: 40, left: 20 }
+    margin = { top: 0, right: 40, bottom: 0, left: 40 }
 
     diameter = window.innerWidth - margin.left - margin.right
     graph = d3.select('#graph')
@@ -227,7 +229,7 @@ class ProAntiTrumpView
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)
 
-    textVisibilityThreshold = if ukOrNonUk == 'uk' then 7000 else 300
+    textVisibilityThreshold = if @ukOrNonUk == 'uk' then 7000 else 300
 
     group.append('circle')
       .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
@@ -270,11 +272,18 @@ class ProAntiTrumpView
       .attr('class', 'click-capture')
       .style('visibility', 'hidden')
 
-  draw: (tableBody, ukOrNonUk) =>
+  draw: () =>
     setupTitle.call(this)
     setupSummaryProgressBar.call(this)
-#    drawTable.call(this, tableBody, ukOrNonUk)
-    drawBubbles.call(this, ukOrNonUk)
+    console.log @tableOrBubble
+    if @tableOrBubble == 'table'
+      $('#bars').removeClass('hidden')
+      $('#graph').addClass('hidden')
+      drawTable.call(this)
+    else
+      $('#bars').addClass('hidden')
+      $('#graph').removeClass('hidden')
+      drawBubbles.call(this)
 
 class @ProTrumpAntiTrumpManager
   constructor: () ->
@@ -282,29 +291,47 @@ class @ProTrumpAntiTrumpManager
   oppositeUkOrNonUk = (ukOrNonUk) ->
     if ukOrNonUk == 'uk' then 'non-uk' else 'uk'
 
-  ukNonUk: ->
-    # The one that's disabled is the one already selected
-    $('.uk-non-uk li.disabled a').text().toLowerCase()
+  oppositeTableOrBubble = (tableOrBubble) ->
+    if tableOrBubble == 'table' then 'bubble' else 'table'
 
   setupUkNonUkLinks: =>
-    $('.menu-non-uk a').attr('href', '#/')
-    $('.menu-uk a').attr('href', "#/uk")
+    $('.menu-non-uk a').attr('href', "#/non-uk/#{@tableOrBubble}")
+    $('.menu-uk a').attr('href', "#/uk/#{@tableOrBubble}")
 
-  makeDropdownReflectUkOrNonUk: (active) =>
+  setupTableBubbleLinks: =>
+    $('.menu-table a').attr('href', "#/#{@ukOrNonUk}/table")
+    $('.menu-bubble a').attr('href', "#/#{@ukOrNonUk}/bubble")
+
+  makeDropdownReflectUkOrNonUk: () =>
+    active = @ukOrNonUk
     activeText = $("li.menu-#{active}").addClass('disabled').text()
     $("li.menu-#{oppositeUkOrNonUk(active)}").removeClass('disabled')
     $('.uk-non-uk .inline-label').text(activeText)
 
-  setup: (ukOrNonUk) ->
+  makeDropdownReflectTableOrBubble: () =>
+    active = @tableOrBubble
+    activeText = $("li.menu-#{active}").addClass('disabled').text()
+    $("li.menu-#{oppositeTableOrBubble(active)}").removeClass('disabled')
+    $('.graph-type .inline-label').text(activeText)
+
+  setup: (ukOrNonUk = 'non-uk', tableOrBubble = 'table') ->
+    @ukOrNonUk = ukOrNonUk
+    @tableOrBubble = tableOrBubble
+
+    console.log(@ukOrNonUk, @tableOrBubble)
+
     antiTrump = 'https://petition.parliament.uk/petitions/171928.json'
     proTrump = 'https://petition.parliament.uk/petitions/178844.json'
+
     duellingPetitions = new DuellingPetitions(antiTrump, proTrump)
     duellingPetitions.getBoth(->
-      view = new ProAntiTrumpView(duellingPetitions)
-      view.draw($('#bars tbody'), ukOrNonUk)
+      view = new ProAntiTrumpView(duellingPetitions, ukOrNonUk, tableOrBubble)
+      view.draw()
     )
     @setupUkNonUkLinks()
-    @makeDropdownReflectUkOrNonUk(ukOrNonUk)
+    @setupTableBubbleLinks()
+    @makeDropdownReflectUkOrNonUk()
+    @makeDropdownReflectTableOrBubble()
 
 
 

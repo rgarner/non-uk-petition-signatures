@@ -69,10 +69,19 @@
             <li class="menu-uk"><a href="#">UK</a></li>
         </ul>
     </span>
-    signatures break down:
+    signatures break down as a
+    <span class="graph-type dropdown">
+        <a href="#" id="drpGraphType" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+            <span class="inline-label">table</span> <span class="caret"></span></a>
+        <ul class="dropdown-menu" aria-labelledby="drpUkNonUk" >
+            <li class="menu-table disabled"><a href="#/">table</a></li>
+            <li class="menu-bubble"><a href="#/bubble">bubble chart</a></li>
+        </ul>
+    </span>
+    :
 </h3>
 
-<table id="bars" class="table table-condensed table-hover">
+<table id="bars" class="hidden table table-condensed table-hover">
     <thead>
         <tr>
             <th class="title" colwidth="30%">Constituency</th>
@@ -114,7 +123,7 @@
     </tr>
 </table>
 
-<div id="graph"></div>
+<div id="graph" class="hidden"></div>
 
 </div>
 </article>
