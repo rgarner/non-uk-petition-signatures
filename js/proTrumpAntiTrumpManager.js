@@ -135,7 +135,7 @@
   })();
 
   ProAntiTrumpView = (function() {
-    var drawBubbles, drawTable, setupSummaryProgressBar, setupTitle;
+    var createTooltip, drawBubbles, drawTable, setupSummaryProgressBar, setupTitle;
 
     function ProAntiTrumpView(duellingPetitions1) {
       this.duellingPetitions = duellingPetitions1;
@@ -184,8 +184,19 @@
       })) + " (" + (stats.petitions[1].percentage.toFixed(1)) + "%) pro.");
     };
 
+    createTooltip = function(vis, svg) {
+      var tip;
+      tip = d3.tip(vis).attr('class', 'd3-tip').offset([-10, 0]).html(function(d) {
+        var formattedPercentages;
+        formattedPercentages = [d.percentage.toFixed(1), (100 - d.percentage).toFixed(1)];
+        return "<h4>" + d.name + "</h4>\n<p><span class='value'>" + (d.size.toLocaleString('en-GB')) + "</span> signatures, of which</p>\n<div class=\"progress\">\n    <div class=\"progress-bar progress-bar-anti-trump\" style=\"width: " + formattedPercentages[0] + "%\">\n        <span>" + formattedPercentages[0] + "% are anti-Trump</span>\n    </div>\n    <div class=\"progress-bar progress-bar-warning progress-bar-pro-trump\" role=\"progressbar\"\n         style=\"width:" + formattedPercentages[1] + "%\"\n    >\n        <span>" + formattedPercentages[1] + "% pro</span>\n    </div>\n</div>";
+      });
+      svg.call(tip);
+      return tip;
+    };
+
     drawBubbles = function(ukOrNonUk) {
-      var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, mainCircle, margin, nodes, processData, size, source, svg, textVisibilityThreshold, tooltipTitle, vis;
+      var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, margin, nodes, processData, size, source, svg, textVisibilityThreshold, tip, vis;
       source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
       processData = function(source) {
         var children, sigMax, sigMin;
@@ -225,7 +236,11 @@
       graph.select('svg').remove();
       svg = graph.append('svg').attr('width', diameter).attr('height', diameter);
       bubble = d3.layout.pack().size([diameter, diameter]).sort(function(a, b) {
-        return -(a.size > b.size);
+        if (a.size > b.size) {
+          return -1;
+        } else {
+          return 1;
+        }
       }).value(function(d) {
         return d.size;
       }).padding(2);
@@ -236,9 +251,10 @@
       color = d3.scale.linear().domain([0, 100]).range(['#f0ad4e', '#337ab7']);
       size = d3.scale.linear().domain([data.sigMin, data.sigMax]).range([0, 20]);
       vis = svg.selectAll('circle').data(nodes);
-      group = vis.enter().append('g');
+      tip = createTooltip(vis, svg);
+      group = vis.enter().append('g').attr('class', 'area-group').on('mouseover', tip.show).on('mouseout', tip.hide);
       textVisibilityThreshold = ukOrNonUk === 'uk' ? 7000 : 300;
-      mainCircle = group.append('circle').attr("transform", function(d) {
+      group.append('circle').attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       }).attr('r', function(d) {
         return d.r;
@@ -247,17 +263,13 @@
       }).attr('style', function(d) {
         return "fill: " + (color(d.percentage));
       });
-      tooltipTitle = function(d) {
-        return d.name + " (" + ((100 - d.percentage).toFixed(1)) + "% of " + d.size + " signatures were pro-Trump)";
-      };
-      mainCircle.append('title').text(tooltipTitle);
       group.append('circle').attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       }).attr('r', function(d) {
         return d.r * ((100 - d.percentage) / 100);
       }).attr('class', function(d) {
         return d.className;
-      }).attr('style', "fill: #f0ad4e").append('title').text(tooltipTitle);
+      }).attr('disabled', 'disabled').attr('style', "fill: #f0ad4e");
       convertProTrumpPercentageToRadians = function(d) {
         return (100 - d.percentage) / 100 * 360 * Math.PI / 180;
       };
@@ -269,7 +281,7 @@
       vis.append("path").attr("class", "pro").attr("d", arc).attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
       });
-      return group.append('text').attr('transform', function(d) {
+      group.append('text').attr('transform', function(d) {
         return "translate(" + d.x + "," + (d.y - size(d.size)) + ")";
       }).text(function(d) {
         if (d.size > textVisibilityThreshold) {
@@ -277,9 +289,14 @@
         }
       }).append('svg:tspan').attr('x', 0).attr('dy', 20).text(function(d) {
         if (d.size > textVisibilityThreshold) {
-          return d.size;
+          return d.size.toLocaleString('en-GB');
         }
       });
+      return group.append('circle').attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      }).attr('r', function(d) {
+        return d.r;
+      }).attr('class', 'click-capture').style('visibility', 'hidden');
     };
 
     ProAntiTrumpView.prototype.draw = function(tableBody, ukOrNonUk) {

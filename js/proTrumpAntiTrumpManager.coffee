@@ -143,6 +143,33 @@ class ProAntiTrumpView
       "#{stats.petitions[1].total.toLocaleString(
         'en-GB', minimumFractionDigits: 0)} (#{stats.petitions[1].percentage.toFixed(1)}%) pro.")
 
+  createTooltip = (vis, svg) ->
+    tip = d3.tip(vis)
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html((d) ->
+        formattedPercentages = [
+          d.percentage.toFixed(1),
+          (100 - d.percentage).toFixed(1)
+        ]
+        """
+          <h4>#{d.name}</h4>
+          <p><span class='value'>#{d.size.toLocaleString('en-GB')}</span> signatures, of which</p>
+          <div class="progress">
+              <div class="progress-bar progress-bar-anti-trump" style="width: #{formattedPercentages[0]}%">
+                  <span>#{formattedPercentages[0]}% are anti-Trump</span>
+              </div>
+              <div class="progress-bar progress-bar-warning progress-bar-pro-trump" role="progressbar"
+                   style="width:#{formattedPercentages[1]}%"
+              >
+                  <span>#{formattedPercentages[1]}% pro</span>
+              </div>
+          </div>
+        """
+      )
+    svg.call(tip)
+    tip
+
   drawBubbles = (ukOrNonUk) ->
     source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
                                   else @duellingPetitions.byCountry
@@ -181,7 +208,7 @@ class ProAntiTrumpView
 
     bubble = d3.layout.pack()
       .size([diameter, diameter])
-      .sort((a, b) -> -(a.size > b.size))
+      .sort((a, b) -> if a.size > b.size then -1 else 1)
       .value( (d) -> d.size )
       .padding(2)
 
@@ -193,27 +220,28 @@ class ProAntiTrumpView
 
     vis = svg.selectAll('circle').data(nodes)
 
-    group = vis.enter().append('g')
+    tip = createTooltip(vis, svg)
+
+    group = vis.enter()
+      .append('g')
+      .attr('class', 'area-group')
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
 
     textVisibilityThreshold = if ukOrNonUk == 'uk' then 7000 else 300
 
-    mainCircle = group.append('circle')
+    group.append('circle')
       .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
       .attr('r', (d) -> d.r )
       .attr('class', (d) -> d.className)
       .attr('style', (d) -> "fill: #{color(d.percentage)}")
 
-    tooltipTitle = (d) ->
-      "#{d.name} (#{(100 - d.percentage).toFixed(1)}% of #{d.size} signatures were pro-Trump)"
-
-    mainCircle.append('title').text(tooltipTitle)
-
     group.append('circle')
       .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
       .attr('r', (d) -> d.r * ((100 - d.percentage) / 100))
       .attr('class', (d) -> d.className)
+      .attr('disabled', 'disabled')
       .attr('style', "fill: #f0ad4e")
-      .append('title').text(tooltipTitle)
 
     convertProTrumpPercentageToRadians = (d) ->
       (100 - d.percentage) / 100 * 360 * Math.PI / 180
@@ -230,12 +258,18 @@ class ProAntiTrumpView
       .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
 
     group.append('text')
-      .attr('transform', (d) -> "translate(#{ d.x  },#{d.y - size(d.size)})")
+      .attr('transform', (d) -> "translate(#{d.x},#{d.y - size(d.size)})")
       .text((d) -> d.name if d.size > textVisibilityThreshold)
       .append('svg:tspan')
       .attr('x', 0)
       .attr('dy', 20)
-      .text((d) -> d.size if d.size > textVisibilityThreshold)
+      .text((d) -> d.size.toLocaleString('en-GB') if d.size > textVisibilityThreshold)
+
+    group.append('circle')
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+      .attr('r', (d) -> d.r )
+      .attr('class', 'click-capture')
+      .style('visibility', 'hidden')
 
   draw: (tableBody, ukOrNonUk) =>
     setupTitle.call(this)
