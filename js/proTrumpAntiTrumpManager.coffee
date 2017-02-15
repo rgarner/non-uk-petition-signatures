@@ -103,12 +103,13 @@ class ProAntiTrumpView
     source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
                                   else @duellingPetitions.byCountry
 
-    sortedByDescendingPetition1Percentage = source().sort(
+    sortedByTotalSignatures = source().sort(
       (c1, c2) ->
-        if c1.petitions[0].percentage < c2.petitions[0].percentage then 1 else -1
+        signature_counts = [c1, c2].map (area) -> area.petitions[0].signature_count + area.petitions[1].signature_count
+        if signature_counts[0] < signature_counts[1] then 1 else -1
     )
 
-    for area in sortedByDescendingPetition1Percentage
+    for area in sortedByTotalSignatures
       tableBody.append(
         """
           <tr>

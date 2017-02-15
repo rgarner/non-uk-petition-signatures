@@ -143,19 +143,23 @@
     }
 
     drawTable = function(tableBody, ukOrNonUk) {
-      var area, i, len, results, sortedByDescendingPetition1Percentage, source;
+      var area, i, len, results, sortedByTotalSignatures, source;
       tableBody.find('tr').remove();
       source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
-      sortedByDescendingPetition1Percentage = source().sort(function(c1, c2) {
-        if (c1.petitions[0].percentage < c2.petitions[0].percentage) {
+      sortedByTotalSignatures = source().sort(function(c1, c2) {
+        var signature_counts;
+        signature_counts = [c1, c2].map(function(area) {
+          return area.petitions[0].signature_count + area.petitions[1].signature_count;
+        });
+        if (signature_counts[0] < signature_counts[1]) {
           return 1;
         } else {
           return -1;
         }
       });
       results = [];
-      for (i = 0, len = sortedByDescendingPetition1Percentage.length; i < len; i++) {
-        area = sortedByDescendingPetition1Percentage[i];
+      for (i = 0, len = sortedByTotalSignatures.length; i < len; i++) {
+        area = sortedByTotalSignatures[i];
         results.push(tableBody.append("<tr>\n  <td class='title'>" + area.name + "</td>\n  <td class='bar'>\n    <div class=\"progress-bar\" style='width: " + area.petitions[0].percentage + "%'>\n        <span>" + (area.petitions[0].signature_count.toLocaleString('en-GB')) + " – " + (area.petitions[0].percentage.toFixed(1)) + "%</span>\n    </div>\n    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\" style='width: " + area.petitions[1].percentage + "%'>\n        <span>" + (area.petitions[1].percentage.toFixed(1)) + "%</span>\n    </div>\n  </td>\n</tr>"));
       }
       return results;
