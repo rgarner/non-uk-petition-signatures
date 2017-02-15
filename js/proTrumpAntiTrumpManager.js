@@ -192,21 +192,35 @@
   })();
 
   this.ProTrumpAntiTrumpManager = (function() {
+    var oppositeUkOrNonUk;
+
     function ProTrumpAntiTrumpManager() {
+      this.switchTo = bind(this.switchTo, this);
       this.setupUkNonUkLinks = bind(this.setupUkNonUkLinks, this);
     }
 
+    oppositeUkOrNonUk = function(ukOrNonUk) {
+      if (ukOrNonUk === 'uk') {
+        return 'non-uk';
+      } else {
+        return 'uk';
+      }
+    };
+
+    ProTrumpAntiTrumpManager.prototype.ukNonUk = function() {
+      return $('.uk-non-uk li.disabled a').text().toLowerCase();
+    };
+
     ProTrumpAntiTrumpManager.prototype.setupUkNonUkLinks = function() {
-      return $('.uk-non-uk .dropdown-menu a').click((function(_this) {
-        return function(e) {
-          var selectedMenuItem;
-          $('.uk-non-uk .dropdown-menu li').removeClass('disabled');
-          selectedMenuItem = $(e.currentTarget);
-          selectedMenuItem.parent('li').addClass('disabled');
-          $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
-          return _this.setup(selectedMenuItem.text().toLowerCase());
-        };
-      })(this));
+      $('.menu-non-uk a').attr('href', '#/');
+      return $('.menu-uk a').attr('href', "#/uk");
+    };
+
+    ProTrumpAntiTrumpManager.prototype.switchTo = function(active) {
+      var activeText;
+      activeText = $("li.menu-" + active).addClass('disabled').text();
+      $("li.menu-" + (oppositeUkOrNonUk(active))).removeClass('disabled');
+      return $('.uk-non-uk .inline-label').text(activeText);
     };
 
     ProTrumpAntiTrumpManager.prototype.setup = function(ukOrNonUk) {
@@ -219,7 +233,8 @@
         view = new ProAntiTrumpView(duellingPetitions);
         return view.draw($('#bars tbody'), ukOrNonUk);
       });
-      return this.setupUkNonUkLinks();
+      this.setupUkNonUkLinks();
+      return this.switchTo(ukOrNonUk);
     };
 
     return ProTrumpAntiTrumpManager;

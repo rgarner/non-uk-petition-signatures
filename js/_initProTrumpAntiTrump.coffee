@@ -1,3 +1,13 @@
 jQuery ->
-  window._proTrumpAntiTrumpManager = new ProTrumpAntiTrumpManager()
-  window._proTrumpAntiTrumpManager.setup('non-uk')
+  root = null
+  useHash = true
+  window._router = new Navigo(root, useHash);
+  window._pageManager = new ProTrumpAntiTrumpManager()
+
+  window._router.on(
+    '/uk': () -> _pageManager.setup('uk')
+    ,
+    '/': () -> _pageManager.setup('non-uk')
+  ).resolve()
+
+  window._router.navigate('/')

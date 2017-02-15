@@ -152,13 +152,21 @@ class ProAntiTrumpView
 class @ProTrumpAntiTrumpManager
   constructor: () ->
 
+  oppositeUkOrNonUk = (ukOrNonUk) ->
+    if ukOrNonUk == 'uk' then 'non-uk' else 'uk'
+
+  ukNonUk: ->
+    # The one that's disabled is the one already selected
+    $('.uk-non-uk li.disabled a').text().toLowerCase()
+
   setupUkNonUkLinks: =>
-    $('.uk-non-uk .dropdown-menu a').click (e) =>
-      $('.uk-non-uk .dropdown-menu li').removeClass('disabled')
-      selectedMenuItem = $(e.currentTarget)
-      selectedMenuItem.parent('li').addClass('disabled')
-      $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
-      @setup(selectedMenuItem.text().toLowerCase())
+    $('.menu-non-uk a').attr('href', '#/')
+    $('.menu-uk a').attr('href', "#/uk")
+
+  switchTo: (active) =>
+    activeText = $("li.menu-#{active}").addClass('disabled').text()
+    $("li.menu-#{oppositeUkOrNonUk(active)}").removeClass('disabled')
+    $('.uk-non-uk .inline-label').text(activeText)
 
   setup: (ukOrNonUk) ->
     antiTrump = 'https://petition.parliament.uk/petitions/171928.json'
@@ -169,6 +177,7 @@ class @ProTrumpAntiTrumpManager
       view.draw($('#bars tbody'), ukOrNonUk)
     )
     @setupUkNonUkLinks()
+    @switchTo(ukOrNonUk)
 
 
 
