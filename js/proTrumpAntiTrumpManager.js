@@ -4,11 +4,12 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   DuellingPetitions = (function() {
-    var get;
+    var get, percentage;
 
     function DuellingPetitions(url1, url2) {
       this.url1 = url1;
       this.url2 = url2;
+      this.byCountry = bind(this.byCountry, this);
       this.byConstituency = bind(this.byConstituency, this);
       this.stats = bind(this.stats, this);
       this.totalSignatures = bind(this.totalSignatures, this);
@@ -64,13 +65,13 @@
       };
     };
 
+    percentage = function(c1, c2) {
+      var total;
+      total = c1.signature_count + c2.signature_count;
+      return (c1.signature_count / total) * 100;
+    };
+
     DuellingPetitions.prototype.byConstituency = function() {
-      var percentage;
-      percentage = function(c1, c2) {
-        var total;
-        total = c1.signature_count + c2.signature_count;
-        return (c1.signature_count / total) * 100;
-      };
       return this.petition1.signaturesByConstituency().map((function(_this) {
         return function(constituency) {
           var constituency2, mappedConstituency;
@@ -98,6 +99,37 @@
       })(this));
     };
 
+    DuellingPetitions.prototype.byCountry = function() {
+      return this.petition1.signaturesByCountry().map((function(_this) {
+        return function(country) {
+          var country2, mappedCountry;
+          country2 = _this.petition2.signaturesByCountry().find(function(c) {
+            return c.code === country.code;
+          }) || {
+            name: country.name,
+            code: country.code,
+            signature_count: 0
+          };
+          mappedCountry = {
+            name: country.name,
+            code: country.code,
+            petitions: [
+              {
+                title: _this.petition1.title(),
+                signature_count: country.signature_count,
+                percentage: percentage(country, country2)
+              }, {
+                title: _this.petition2.title(),
+                signature_count: country2.signature_count,
+                percentage: percentage(country2, country)
+              }
+            ]
+          };
+          return mappedCountry;
+        };
+      })(this));
+    };
+
     return DuellingPetitions;
 
   })();
@@ -110,10 +142,11 @@
       this.draw = bind(this.draw, this);
     }
 
-    drawTable = function(tableBody) {
-      var constituency, i, len, results, sortedByDescendingPetition1Percentage;
+    drawTable = function(tableBody, ukOrNonUk) {
+      var area, i, len, results, sortedByDescendingPetition1Percentage, source;
       tableBody.find('tr').remove();
-      sortedByDescendingPetition1Percentage = this.duellingPetitions.byConstituency().sort(function(c1, c2) {
+      source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
+      sortedByDescendingPetition1Percentage = source().sort(function(c1, c2) {
         if (c1.petitions[0].percentage < c2.petitions[0].percentage) {
           return 1;
         } else {
@@ -122,8 +155,8 @@
       });
       results = [];
       for (i = 0, len = sortedByDescendingPetition1Percentage.length; i < len; i++) {
-        constituency = sortedByDescendingPetition1Percentage[i];
-        results.push(tableBody.append("<tr>\n  <td class='title'>" + constituency.name + "</td>\n  <td class='bar'>\n    <div class=\"progress-bar\" style='width: " + constituency.petitions[0].percentage + "%'>\n        <span>" + (constituency.petitions[0].percentage.toFixed(1)) + "%</span>\n    </div>\n    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\" style='width: " + constituency.petitions[1].percentage + "%'>\n        <span>" + (constituency.petitions[1].percentage.toFixed(1)) + "%</span>\n    </div>\n  </td>\n</tr>"));
+        area = sortedByDescendingPetition1Percentage[i];
+        results.push(tableBody.append("<tr>\n  <td class='title'>" + area.name + "</td>\n  <td class='bar'>\n    <div class=\"progress-bar\" style='width: " + area.petitions[0].percentage + "%'>\n        <span>" + (area.petitions[0].signature_count.toLocaleString('en-GB')) + " – " + (area.petitions[0].percentage.toFixed(1)) + "%</span>\n    </div>\n    <div class=\"progress-bar progress-bar-warning\" role=\"progressbar\" style='width: " + area.petitions[1].percentage + "%'>\n        <span>" + (area.petitions[1].percentage.toFixed(1)) + "%</span>\n    </div>\n  </td>\n</tr>"));
       }
       return results;
     };
@@ -148,10 +181,10 @@
       })) + " (" + (stats.petitions[1].percentage.toFixed(1)) + "%) pro.");
     };
 
-    ProAntiTrumpView.prototype.draw = function(tableBody) {
+    ProAntiTrumpView.prototype.draw = function(tableBody, ukOrNonUk) {
       setupTitle.call(this);
       setupSummaryProgressBar.call(this);
-      return drawTable.call(this, tableBody);
+      return drawTable.call(this, tableBody, ukOrNonUk);
     };
 
     return ProAntiTrumpView;
@@ -159,18 +192,34 @@
   })();
 
   this.ProTrumpAntiTrumpManager = (function() {
-    function ProTrumpAntiTrumpManager() {}
+    function ProTrumpAntiTrumpManager() {
+      this.setupUkNonUkLinks = bind(this.setupUkNonUkLinks, this);
+    }
+
+    ProTrumpAntiTrumpManager.prototype.setupUkNonUkLinks = function() {
+      return $('.uk-non-uk .dropdown-menu a').click((function(_this) {
+        return function(e) {
+          var selectedMenuItem;
+          $('.uk-non-uk .dropdown-menu li').removeClass('disabled');
+          selectedMenuItem = $(e.currentTarget);
+          selectedMenuItem.parent('li').addClass('disabled');
+          $('.uk-non-uk .inline-label').text(selectedMenuItem.text());
+          return _this.setup(selectedMenuItem.text().toLowerCase());
+        };
+      })(this));
+    };
 
     ProTrumpAntiTrumpManager.prototype.setup = function(ukOrNonUk) {
       var antiTrump, duellingPetitions, proTrump;
       antiTrump = 'https://petition.parliament.uk/petitions/171928.json';
       proTrump = 'https://petition.parliament.uk/petitions/178844.json';
       duellingPetitions = new DuellingPetitions(antiTrump, proTrump);
-      return duellingPetitions.getBoth(function() {
+      duellingPetitions.getBoth(function() {
         var view;
         view = new ProAntiTrumpView(duellingPetitions);
-        return view.draw($('#bars tbody'));
+        return view.draw($('#bars tbody'), ukOrNonUk);
       });
+      return this.setupUkNonUkLinks();
     };
 
     return ProTrumpAntiTrumpManager;

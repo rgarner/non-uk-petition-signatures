@@ -39,11 +39,11 @@ class DuellingPetitions
       }
     ]
 
-  byConstituency: () =>
-    percentage = (c1, c2) ->
-      total = c1.signature_count + c2.signature_count
-      (c1.signature_count / total) * 100
+  percentage = (c1, c2) ->
+    total = c1.signature_count + c2.signature_count
+    (c1.signature_count / total) * 100
 
+  byConstituency: () =>
     @petition1.signaturesByConstituency().map( (constituency) =>
       constituency2 =
         @petition2.signaturesByConstituency().find((c)-> c.ons_code == constituency.ons_code)
@@ -67,27 +67,58 @@ class DuellingPetitions
       mappedConstituency
     )
 
+  byCountry: () =>
+    @petition1.signaturesByCountry().map( (country) =>
+      country2 =
+        @petition2.signaturesByCountry().find((c)-> c.code == country.code) ||
+          name: country.name
+          code: country.code
+          signature_count: 0
+
+      mappedCountry =
+        name: country.name,
+        code: country.code
+        petitions: [
+          {
+            title: @petition1.title()
+            signature_count: country.signature_count
+            percentage: percentage(country, country2)
+          },
+          {
+            title: @petition2.title()
+            signature_count: country2.signature_count
+            percentage: percentage(country2, country)
+          }
+        ]
+
+      mappedCountry
+    )
+
 class ProAntiTrumpView
   constructor: (@duellingPetitions) ->
 
-  drawTable = (tableBody) ->
+  drawTable = (tableBody, ukOrNonUk) ->
     tableBody.find('tr').remove()
-    sortedByDescendingPetition1Percentage = @duellingPetitions.byConstituency().sort(
+
+    source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
+                                  else @duellingPetitions.byCountry
+
+    sortedByDescendingPetition1Percentage = source().sort(
       (c1, c2) ->
         if c1.petitions[0].percentage < c2.petitions[0].percentage then 1 else -1
     )
 
-    for constituency in sortedByDescendingPetition1Percentage
+    for area in sortedByDescendingPetition1Percentage
       tableBody.append(
         """
           <tr>
-            <td class='title'>#{constituency.name}</td>
+            <td class='title'>#{area.name}</td>
             <td class='bar'>
-              <div class="progress-bar" style='width: #{constituency.petitions[0].percentage}%'>
-                  <span>#{constituency.petitions[0].percentage.toFixed(1)}%</span>
+              <div class="progress-bar" style='width: #{area.petitions[0].percentage}%'>
+                  <span>#{area.petitions[0].signature_count.toLocaleString('en-GB')} – #{area.petitions[0].percentage.toFixed(1)}%</span>
               </div>
-              <div class="progress-bar progress-bar-warning" role="progressbar" style='width: #{constituency.petitions[1].percentage}%'>
-                  <span>#{constituency.petitions[1].percentage.toFixed(1)}%</span>
+              <div class="progress-bar progress-bar-warning" role="progressbar" style='width: #{area.petitions[1].percentage}%'>
+                  <span>#{area.petitions[1].percentage.toFixed(1)}%</span>
               </div>
             </td>
           </tr>
@@ -113,13 +144,21 @@ class ProAntiTrumpView
         'en-GB', minimumFractionDigits: 0)} (#{stats.petitions[1].percentage.toFixed(1)}%) pro.")
 
 
-  draw: (tableBody) =>
+  draw: (tableBody, ukOrNonUk) =>
     setupTitle.call(this)
     setupSummaryProgressBar.call(this)
-    drawTable.call(this, tableBody)
+    drawTable.call(this, tableBody, ukOrNonUk)
 
 class @ProTrumpAntiTrumpManager
   constructor: () ->
+
+  setupUkNonUkLinks: =>
+    $('.uk-non-uk .dropdown-menu a').click (e) =>
+      $('.uk-non-uk .dropdown-menu li').removeClass('disabled')
+      selectedMenuItem = $(e.currentTarget)
+      selectedMenuItem.parent('li').addClass('disabled')
+      $('.uk-non-uk .inline-label').text(selectedMenuItem.text())
+      @setup(selectedMenuItem.text().toLowerCase())
 
   setup: (ukOrNonUk) ->
     antiTrump = 'https://petition.parliament.uk/petitions/171928.json'
@@ -127,8 +166,9 @@ class @ProTrumpAntiTrumpManager
     duellingPetitions = new DuellingPetitions(antiTrump, proTrump)
     duellingPetitions.getBoth(->
       view = new ProAntiTrumpView(duellingPetitions)
-      view.draw($('#bars tbody'))
+      view.draw($('#bars tbody'), ukOrNonUk)
     )
+    @setupUkNonUkLinks()
 
 
 
