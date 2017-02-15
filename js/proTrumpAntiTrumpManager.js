@@ -135,7 +135,7 @@
   })();
 
   ProAntiTrumpView = (function() {
-    var drawTable, setupSummaryProgressBar, setupTitle;
+    var drawBubbles, drawTable, setupSummaryProgressBar, setupTitle;
 
     function ProAntiTrumpView(duellingPetitions1) {
       this.duellingPetitions = duellingPetitions1;
@@ -174,7 +174,6 @@
     setupSummaryProgressBar = function() {
       var stats;
       stats = this.duellingPetitions.stats();
-      console.log(stats);
       $('.progress-bar-anti-trump').attr('style', "width: " + (stats.petitions[0].percentage.toFixed(1)) + "%");
       $('.progress-bar-anti-trump span').text((stats.petitions[0].total.toLocaleString('en-GB', {
         minimumFractionDigits: 0
@@ -185,10 +184,108 @@
       })) + " (" + (stats.petitions[1].percentage.toFixed(1)) + "%) pro.");
     };
 
+    drawBubbles = function(ukOrNonUk) {
+      var arc, bubble, color, convertProTrumpPercentageToRadians, data, diameter, graph, group, mainCircle, margin, nodes, processData, size, source, svg, textVisibilityThreshold, tooltipTitle, vis;
+      source = ukOrNonUk === 'uk' ? this.duellingPetitions.byConstituency : this.duellingPetitions.byCountry;
+      processData = function(source) {
+        var children, sigMax, sigMin;
+        sigMax = 0;
+        sigMin = 9999999999;
+        children = source().map(function(area) {
+          var totalSignatures;
+          totalSignatures = area.petitions[0].signature_count + area.petitions[1].signature_count;
+          if (totalSignatures < sigMin) {
+            sigMin = totalSignatures;
+          }
+          if (totalSignatures > sigMax) {
+            sigMax = totalSignatures;
+          }
+          return {
+            name: area.name,
+            className: area.ons_code || area.code,
+            code: area.code,
+            percentage: area.petitions[0].percentage,
+            size: area.petitions[0].signature_count + area.petitions[1].signature_count
+          };
+        });
+        return {
+          sigMin: sigMin,
+          sigMax: sigMax,
+          children: children
+        };
+      };
+      margin = {
+        top: 40,
+        right: 20,
+        bottom: 40,
+        left: 20
+      };
+      diameter = window.innerWidth - margin.left - margin.right;
+      graph = d3.select('#graph');
+      graph.select('svg').remove();
+      svg = graph.append('svg').attr('width', diameter).attr('height', diameter);
+      bubble = d3.layout.pack().size([diameter, diameter]).sort(function(a, b) {
+        return -(a.size > b.size);
+      }).value(function(d) {
+        return d.size;
+      }).padding(2);
+      data = processData(source);
+      nodes = bubble.nodes(data).filter(function(d) {
+        return !d.children;
+      });
+      color = d3.scale.linear().domain([0, 100]).range(['#f0ad4e', '#337ab7']);
+      size = d3.scale.linear().domain([data.sigMin, data.sigMax]).range([0, 20]);
+      vis = svg.selectAll('circle').data(nodes);
+      group = vis.enter().append('g');
+      textVisibilityThreshold = ukOrNonUk === 'uk' ? 7000 : 300;
+      mainCircle = group.append('circle').attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      }).attr('r', function(d) {
+        return d.r;
+      }).attr('class', function(d) {
+        return d.className;
+      }).attr('style', function(d) {
+        return "fill: " + (color(d.percentage));
+      });
+      tooltipTitle = function(d) {
+        return d.name + " (" + ((100 - d.percentage).toFixed(1)) + "% of " + d.size + " signatures were pro-Trump)";
+      };
+      mainCircle.append('title').text(tooltipTitle);
+      group.append('circle').attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      }).attr('r', function(d) {
+        return d.r * ((100 - d.percentage) / 100);
+      }).attr('class', function(d) {
+        return d.className;
+      }).attr('style', "fill: #f0ad4e").append('title').text(tooltipTitle);
+      convertProTrumpPercentageToRadians = function(d) {
+        return (100 - d.percentage) / 100 * 360 * Math.PI / 180;
+      };
+      arc = d3.svg.arc().innerRadius(function(d) {
+        return d.r * 0.85;
+      }).outerRadius(function(d) {
+        return d.r;
+      }).startAngle(convertProTrumpPercentageToRadians).endAngle(0 * (Math.PI / 180));
+      vis.append("path").attr("class", "pro").attr("d", arc).attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      });
+      return group.append('text').attr('transform', function(d) {
+        return "translate(" + d.x + "," + (d.y - size(d.size)) + ")";
+      }).text(function(d) {
+        if (d.size > textVisibilityThreshold) {
+          return d.name;
+        }
+      }).append('svg:tspan').attr('x', 0).attr('dy', 20).text(function(d) {
+        if (d.size > textVisibilityThreshold) {
+          return d.size;
+        }
+      });
+    };
+
     ProAntiTrumpView.prototype.draw = function(tableBody, ukOrNonUk) {
       setupTitle.call(this);
       setupSummaryProgressBar.call(this);
-      return drawTable.call(this, tableBody, ukOrNonUk);
+      return drawBubbles.call(this, ukOrNonUk);
     };
 
     return ProAntiTrumpView;
@@ -199,7 +296,7 @@
     var oppositeUkOrNonUk;
 
     function ProTrumpAntiTrumpManager() {
-      this.switchTo = bind(this.switchTo, this);
+      this.makeDropdownReflectUkOrNonUk = bind(this.makeDropdownReflectUkOrNonUk, this);
       this.setupUkNonUkLinks = bind(this.setupUkNonUkLinks, this);
     }
 
@@ -220,7 +317,7 @@
       return $('.menu-uk a').attr('href', "#/uk");
     };
 
-    ProTrumpAntiTrumpManager.prototype.switchTo = function(active) {
+    ProTrumpAntiTrumpManager.prototype.makeDropdownReflectUkOrNonUk = function(active) {
       var activeText;
       activeText = $("li.menu-" + active).addClass('disabled').text();
       $("li.menu-" + (oppositeUkOrNonUk(active))).removeClass('disabled');
@@ -238,7 +335,7 @@
         return view.draw($('#bars tbody'), ukOrNonUk);
       });
       this.setupUkNonUkLinks();
-      return this.switchTo(ukOrNonUk);
+      return this.makeDropdownReflectUkOrNonUk(ukOrNonUk);
     };
 
     return ProTrumpAntiTrumpManager;

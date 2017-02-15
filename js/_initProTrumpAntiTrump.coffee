@@ -9,5 +9,3 @@ jQuery ->
     ,
     '/': () -> _pageManager.setup('non-uk')
   ).resolve()
-
-  window._router.navigate('/')

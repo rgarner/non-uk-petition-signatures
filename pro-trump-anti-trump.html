@@ -21,6 +21,7 @@
 
     <title>Petition signatures by constituency or country</title>
     <script src="js/jquery.js" charset="utf-8"></script>
+    <script src="js/d3.v3.min.js" charset="utf-8"></script>
     <script src="js/petitionData.js" charset="utf-8"></script>
     <script src="js/navigo.min.js" charset="utf-8"></script>
     <script src="js/proTrumpAntiTrumpManager.js" charset="utf-8"></script>
@@ -70,7 +71,6 @@
     signatures break down:
 </h3>
 
-
 <table id="bars" class="table table-condensed table-hover">
     <thead>
         <tr>
@@ -112,6 +112,8 @@
         </td>
     </tr>
 </table>
+
+<div id="graph"></div>
 
 </div>
 </article>

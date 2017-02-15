@@ -6,7 +6,7 @@
     useHash = true;
     window._router = new Navigo(root, useHash);
     window._pageManager = new ProTrumpAntiTrumpManager();
-    window._router.on({
+    return window._router.on({
       '/uk': function() {
         return _pageManager.setup('uk');
       },
@@ -14,7 +14,6 @@
         return _pageManager.setup('non-uk');
       }
     }).resolve();
-    return window._router.navigate('/');
   });
 
 }).call(this);
