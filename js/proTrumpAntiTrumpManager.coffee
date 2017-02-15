@@ -95,12 +95,14 @@ class DuellingPetitions
     )
 
 class ProAntiTrumpView
-  constructor: (@duellingPetitions) ->
+  constructor: (@duellingPetitions, @ukOrNonUk, @tableOrBubble) ->
+    console.log 'constructor', @duellingPetitions, @ukOrNonUk, @tableOrBubble
 
-  drawTable = (tableBody, ukOrNonUk) ->
+  drawTable = () ->
+    tableBody = $('#bars tbody')
     tableBody.find('tr').remove()
 
-    source = if ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
+    source = if @ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
                                   else @duellingPetitions.byCountry
 
     sortedByTotalSignatures = source().sort(
@@ -134,7 +136,6 @@ class ProAntiTrumpView
   setupSummaryProgressBar = ->
     stats = @duellingPetitions.stats()
 
-    console.log(stats)
     $('.progress-bar-anti-trump').attr('style', "width: #{stats.petitions[0].percentage.toFixed(1)}%")
     $('.progress-bar-anti-trump span').text(
       "#{stats.petitions[0].total.toLocaleString(
@@ -144,11 +145,145 @@ class ProAntiTrumpView
       "#{stats.petitions[1].total.toLocaleString(
         'en-GB', minimumFractionDigits: 0)} (#{stats.petitions[1].percentage.toFixed(1)}%) pro.")
 
+  createTooltip = (vis, svg) ->
+    tip = d3.tip(vis)
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html((d) ->
+        formattedPercentages = [
+          d.percentage.toFixed(1),
+          (100 - d.percentage).toFixed(1)
+        ]
+        """
+          <h4>#{d.name}</h4>
+          <p><span class='value'>#{d.size.toLocaleString('en-GB')}</span> signatures, of which</p>
+          <div class="progress">
+              <div class="progress-bar progress-bar-anti-trump" style="width: #{formattedPercentages[0]}%">
+                  <span>#{formattedPercentages[0]}% are anti-Trump</span>
+              </div>
+              <div class="progress-bar progress-bar-warning progress-bar-pro-trump" role="progressbar"
+                   style="width:#{formattedPercentages[1]}%"
+              >
+                  <span>#{formattedPercentages[1]}% pro</span>
+              </div>
+          </div>
+        """
+      )
+    svg.call(tip)
+    tip
 
-  draw: (tableBody, ukOrNonUk) =>
+  drawBubbles = () ->
+    source = if @ukOrNonUk == 'uk' then @duellingPetitions.byConstituency \
+                                  else @duellingPetitions.byCountry
+
+    processData = (source) ->
+      sigMax = 0
+      sigMin = 9999999999
+
+      children = source().map (area) ->
+        totalSignatures = area.petitions[0].signature_count + area.petitions[1].signature_count
+        sigMin = totalSignatures if totalSignatures < sigMin
+        sigMax = totalSignatures if totalSignatures > sigMax
+
+        {
+          name: area.name
+          className: area.ons_code || area.code
+          code: area.code
+          percentage: area.petitions[0].percentage
+          size: area.petitions[0].signature_count + area.petitions[1].signature_count
+        }
+
+      {
+        sigMin: sigMin
+        sigMax: sigMax
+        children: children
+      }
+
+    margin = { top: 0, right: 40, bottom: 0, left: 40 }
+
+    diameter = window.innerWidth - margin.left - margin.right
+    graph = d3.select('#graph')
+    graph.select('svg').remove()
+    svg = graph.append('svg')
+      .attr('width', diameter)
+      .attr('height', diameter)
+
+    bubble = d3.layout.pack()
+      .size([diameter, diameter])
+      .sort((a, b) -> if a.size > b.size then -1 else 1)
+      .value( (d) -> d.size )
+      .padding(2)
+
+    data = processData(source)
+    nodes = bubble.nodes(data).filter((d) -> !d.children )
+
+    color = d3.scale.linear().domain([0,100]).range(['#f0ad4e', '#337ab7'])
+
+    vis = svg.selectAll('circle').data(nodes)
+
+    tip = createTooltip(vis, svg)
+
+    group = vis.enter()
+      .append('g')
+      .attr('class', 'area-group')
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+
+    textVisibilityThreshold = if @ukOrNonUk == 'uk' then 7000 else 300
+
+    group.append('circle')
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+      .attr('r', (d) -> d.r )
+      .attr('class', (d) -> d.className)
+      .attr('style', (d) -> "fill: #{color(d.percentage)}")
+
+    group.append('circle')
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+      .attr('r', (d) -> d.r * ((100 - d.percentage) / 100))
+      .attr('class', (d) -> d.className)
+      .attr('disabled', 'disabled')
+      .attr('style', "fill: #f0ad4e")
+
+    convertProTrumpPercentageToRadians = (d) ->
+      (100 - d.percentage) / 100 * 360 * Math.PI / 180
+
+    arc = d3.svg.arc()
+      .innerRadius((d) -> d.r * 0.85)
+      .outerRadius((d) -> d.r)
+      .startAngle(convertProTrumpPercentageToRadians)
+      .endAngle(0 * (Math.PI/180))
+
+    vis.append("path")
+      .attr("class", "pro")
+      .attr("d", arc)
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+
+    group.append('text')
+      .attr('transform', (d) -> "translate(#{d.x},#{d.y})")
+      .text((d) -> d.name if d.size > textVisibilityThreshold)
+      .append('svg:tspan')
+      .attr('x', 0)
+      .attr('dy', 20)
+      .text((d) -> d.size.toLocaleString('en-GB') if d.size > textVisibilityThreshold)
+
+    group.append('circle')
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+      .attr('r', (d) -> d.r )
+      .attr('class', 'click-capture')
+      .style('visibility', 'hidden')
+
+  draw: () =>
     setupTitle.call(this)
     setupSummaryProgressBar.call(this)
-    drawTable.call(this, tableBody, ukOrNonUk)
+    console.log @tableOrBubble
+    if @tableOrBubble == 'table'
+      $('#bars').removeClass('hidden')
+      $('#graph').addClass('hidden')
+      drawTable.call(this)
+    else
+      $('#bars').addClass('hidden')
+      $('#graph').removeClass('hidden')
+      drawBubbles.call(this)
 
 class @ProTrumpAntiTrumpManager
   constructor: () ->
@@ -156,29 +291,47 @@ class @ProTrumpAntiTrumpManager
   oppositeUkOrNonUk = (ukOrNonUk) ->
     if ukOrNonUk == 'uk' then 'non-uk' else 'uk'
 
-  ukNonUk: ->
-    # The one that's disabled is the one already selected
-    $('.uk-non-uk li.disabled a').text().toLowerCase()
+  oppositeTableOrBubble = (tableOrBubble) ->
+    if tableOrBubble == 'table' then 'bubble' else 'table'
 
   setupUkNonUkLinks: =>
-    $('.menu-non-uk a').attr('href', '#/')
-    $('.menu-uk a').attr('href', "#/uk")
+    $('.menu-non-uk a').attr('href', "#/non-uk/#{@tableOrBubble}")
+    $('.menu-uk a').attr('href', "#/uk/#{@tableOrBubble}")
 
-  switchTo: (active) =>
+  setupTableBubbleLinks: =>
+    $('.menu-table a').attr('href', "#/#{@ukOrNonUk}/table")
+    $('.menu-bubble a').attr('href', "#/#{@ukOrNonUk}/bubble")
+
+  makeDropdownReflectUkOrNonUk: () =>
+    active = @ukOrNonUk
     activeText = $("li.menu-#{active}").addClass('disabled').text()
     $("li.menu-#{oppositeUkOrNonUk(active)}").removeClass('disabled')
     $('.uk-non-uk .inline-label').text(activeText)
 
-  setup: (ukOrNonUk) ->
+  makeDropdownReflectTableOrBubble: () =>
+    active = @tableOrBubble
+    activeText = $("li.menu-#{active}").addClass('disabled').text()
+    $("li.menu-#{oppositeTableOrBubble(active)}").removeClass('disabled')
+    $('.graph-type .inline-label').text(activeText)
+
+  setup: (ukOrNonUk = 'non-uk', tableOrBubble = 'table') ->
+    @ukOrNonUk = ukOrNonUk
+    @tableOrBubble = tableOrBubble
+
+    console.log(@ukOrNonUk, @tableOrBubble)
+
     antiTrump = 'https://petition.parliament.uk/petitions/171928.json'
     proTrump = 'https://petition.parliament.uk/petitions/178844.json'
+
     duellingPetitions = new DuellingPetitions(antiTrump, proTrump)
     duellingPetitions.getBoth(->
-      view = new ProAntiTrumpView(duellingPetitions)
-      view.draw($('#bars tbody'), ukOrNonUk)
+      view = new ProAntiTrumpView(duellingPetitions, ukOrNonUk, tableOrBubble)
+      view.draw()
     )
     @setupUkNonUkLinks()
-    @switchTo(ukOrNonUk)
+    @setupTableBubbleLinks()
+    @makeDropdownReflectUkOrNonUk()
+    @makeDropdownReflectTableOrBubble()
 
 
 

@@ -69,16 +69,64 @@ h3.non-uk-summary {
 }
 
 #bars td {
-    /*border: 1px solid red;*/
     padding: 2px;
 }
 
 #bars .title {
     text-align: right;
-    /*padding-right: 2em;*/
 }
 
 #bars thead .title {
     width: 22em;
 }
 
+text {
+    fill: black;
+    text-anchor: middle;
+    z-index: 2;
+}
+
+circle {
+    /*stroke: black;*/
+}
+
+path.pro {
+    fill: #F0AD4E;
+}
+
+.d3-tip {
+    line-height: 1;
+    padding: 0 20px 15px 20px;
+    background: rgba(255,255,255, 0.8);
+    color: black;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 1em;
+    width: 100%;
+    line-height: 1;
+    color: rgba(175, 175, 175, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+.d3-tip .value {
+    font-weight: bold;
+}
+
+g.area-group {
+    pointer-events: all;
+}

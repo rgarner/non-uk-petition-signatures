@@ -21,6 +21,8 @@
 
     <title>Petition signatures by constituency or country</title>
     <script src="js/jquery.js" charset="utf-8"></script>
+    <script src="js/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/d3-tip.js" charset="utf-8"></script>
     <script src="js/petitionData.js" charset="utf-8"></script>
     <script src="js/navigo.min.js" charset="utf-8"></script>
     <script src="js/proTrumpAntiTrumpManager.js" charset="utf-8"></script>
@@ -67,11 +69,19 @@
             <li class="menu-uk"><a href="#">UK</a></li>
         </ul>
     </span>
-    signatures break down:
+    signatures break down as a
+    <span class="graph-type dropdown">
+        <a href="#" id="drpGraphType" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+            <span class="inline-label">table</span> <span class="caret"></span></a>
+        <ul class="dropdown-menu" aria-labelledby="drpUkNonUk" >
+            <li class="menu-table disabled"><a href="#/">table</a></li>
+            <li class="menu-bubble"><a href="#/bubble">bubble chart</a></li>
+        </ul>
+    </span>
+    :
 </h3>
 
-
-<table id="bars" class="table table-condensed table-hover">
+<table id="bars" class="hidden table table-condensed table-hover">
     <thead>
         <tr>
             <th class="title" colwidth="30%">Constituency</th>
@@ -113,11 +123,13 @@
     </tr>
 </table>
 
+<div id="graph" class="hidden"></div>
+
 </div>
 </article>
 
 <footer class="navbar">
-    <p align="right">© Zephyros Systems Limited 2015</p>
+    <p align="right">© Zephyros Systems Limited 2017</p>
     <p align="right">Petition Data © Crown, published under <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government License</a></p>
 </footer>
 
